@@ -328,7 +328,8 @@ vmGUImenu <- function() {
                     boxcox="boxcox", clr="clr")
                 colnames(tx) <- paste(prefix, "(", tvars, ")", sep="")
             }
-            assign(ActiveDataSet(), cbind(activeData, tx), envir=.GlobalEnv)
+            assign(ActiveDataSet(), cbind(activeData, tx), envir=vmGUIenv())
+			getVm("ActiveDataSet()")
             insert(varsBox, colnames(tx))
             insert(highlightBox, colnames(tx))
             closeDialog(ttT, parent=ttM)
@@ -464,13 +465,14 @@ vmGUImenu <- function() {
         k <- getVm("k")
         assign(paste(ActiveDataSet(),"_IMPUTED",sep=""),
         kNN(data,variable=vars,dist_var=distance,k=k,
-			imp_suffix=getVm("delimiter")),pos=1)
+			imp_suffix=getVm("delimiter")), envir=vmGUIenv()) #new
+		getVm(paste(ActiveDataSet(),"_IMPUTED",sep=""))  #new 
         cmd <- paste(paste(ActiveDataSet(),"_IMPUTED",sep=""),
                 " <- kNN(",ActiveDataSet(),",variable=c(",paste("\"",vars,"\"",sep="",collapse=","),
                 "),dist_var=c(",paste("\"",distance,"\"",sep="",collapse=","),"),
 				k=",k,",imp_suffix=\"",getVm("delimiter"),"\")", sep="")
         cat(cmd,"\n")
-        
+		closeDialog(ttIMP)
       }
       ttIMP <- initializeDialog("kNN - Imputation")
       ## frames
@@ -552,9 +554,11 @@ vmGUImenu <- function() {
           tkmessageBox(message=c("Select at least one variable to impute!"),
               icon="warning", parent=ttM)
         }else{
-          assign(paste(ActiveDataSet(),"_IMPUTED",sep=""),
-              hotdeck(data,variable=vars,ord_var=sort,domain_var=domain,
-					  imp_suffix=getVm("delimiter")),pos=1)
+			  assign(paste(ActiveDataSet(),"_IMPUTED",sep=""),
+			  hotdeck(data,variable=vars,ord_var=sort,domain_var=domain,
+					  imp_suffix=getVm("delimiter")), envir=vmGUIenv()) #new
+	  getVm(paste(ActiveDataSet(),"_IMPUTED",sep=""))  #new 
+	  
           if(is.null(sort))
             ord_var <- "NULL"
           else
@@ -568,6 +572,7 @@ vmGUImenu <- function() {
                 "),ord_var=",ord_var,",domain_var=",domain_var,",imp_suffix=\"",getVm("delimiter"),"\")",sep="")
           cat(cmd,"\n")
         }
+		closeDialog(ttIMP)
       }
       ttIMP <- initializeDialog("Hotdeck - Imputation")
       ## frames
@@ -632,10 +637,10 @@ vmGUImenu <- function() {
         vars=getVm("vars")
         mixed=getVm("mixed")
         robust=getVm("robust")
-        assign(paste(ActiveDataSet(),"_IMPUTED",sep=""),
-            irmi(x,mixed=mixed,robust=robust),
-            pos=1
-        )
+		assign(paste(ActiveDataSet(),"_IMPUTED",sep=""),
+				irmi(x,mixed=mixed,robust=robust), envir=vmGUIenv()) #new
+		getVm(paste(ActiveDataSet(),"_IMPUTED",sep=""))  #new 
+		
         if(length(mixed)>1)
           mixed <- paste("c(",paste("\"",mixed,"\"",sep="",collapse=","),")",sep="")
         else mixed <- "NULL"
@@ -646,7 +651,7 @@ vmGUImenu <- function() {
                 mixed,",robust=",robust,")"
                 ,sep="")
         cat(cmd,"\n")
-        
+		closeDialog(ttIMP)
       }
       ttIMP <- initializeDialog("IRMI")
       ## frames

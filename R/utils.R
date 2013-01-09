@@ -308,14 +308,7 @@ setState.okCancel <- function(object, state = "normal", ...) {
 
 # access vmGUIenv
 vmGUIenv <- function() {
-    pos <-  match("vmGUIenv", search())
-    if(is.na(pos)) { # must create it
-        vmGUIenv <- list()
-        attach(vmGUIenv, pos = length(search()) - 1)
-        rm(vmGUIenv)
-        pos <- match("vmGUIenv", search())
-    }
-    return(pos.to.env(pos))
+    get("vmGUIenvir", envir=as.environment("package:VIM"))
 }
 
 # put in vmGUIenv

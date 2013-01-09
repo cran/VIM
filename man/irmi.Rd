@@ -10,7 +10,7 @@ one variable is used as a response variable and the remaining variables
 serve as the regressors.
 }
 \usage{
-irmi(x, eps = 5, maxit = 100, mixed = NULL, count = NULL, step = FALSE, 
+irmi(x, eps = 5, maxit = 100, mixed = NULL, mixed.constant=NULL, count = NULL, step = FALSE, 
     robust = FALSE, takeAll = TRUE, noise = TRUE, noise.factor = 1,
     force = FALSE, robMethod = "MM", force.mixed = TRUE, mi = 1,
     addMixedFactors = FALSE, trace = FALSE,init.method="kNN")
@@ -27,6 +27,10 @@ maximum number of iterations
 }
 \item{mixed}{
 column index of the semi-continuous variables
+}
+\item{mixed.constant}{
+vector with length equal to the number of semi-continuous variables specifying the point
+of the semi-continuous distribution with non-zero probability
 }
 \item{count}{
 column index of count variables
@@ -96,5 +100,15 @@ Matthias Templ, Alexander Kowarik
 \examples{
 data(sleep)
 irmi(sleep)
+
+data(testdata)
+imp_testdata1 <- irmi(testdata$wna,mixed=testdata$mixed)
+
+# mixed.constant != 0 (-10)
+testdata$wna$m1[testdata$wna$m1==0] <- -10
+testdata$wna$m2 <- log(testdata$wna$m2+0.001)
+imp_testdata2 <- irmi(testdata$wna,mixed=testdata$mixed,mixed.constant=c(-10,log(0.001)))
+imp_testdata2$m2 <- exp(imp_testdata2$m2)-0.001
+
 }
 \keyword{ manip }

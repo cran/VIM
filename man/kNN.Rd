@@ -16,12 +16,12 @@ k-Nearest Neighbour Imputation based on a variation of the Gower Distance for nu
 kNN(data, variable = colnames(data), metric = NULL, k = 5,
     dist_var = colnames(data), weights = NULL, numFun = median,
     catFun = maxCat, makeNA = NULL, NAcond = NULL, impNA = TRUE,
-    donorcond = NULL, mixed = vector(), trace = FALSE, imp_var = TRUE,
+    donorcond = NULL, mixed = vector(),mixed.constant=NULL, trace = FALSE, imp_var = TRUE,
     imp_suffix = "imp", addRandom = FALSE)
 sampleCat(x)
 maxCat(x)
 gowerD(data.x, data.y = data.x, weights = NULL, numerical, factors,
-    orders, mixed, levOrders)
+    orders, mixed, levOrders,mixed.constant)
 which.minN(x, n)
 }
 \arguments{
@@ -94,6 +94,10 @@ which.minN(x, n)
   \item{mixed}{
     names of mixed variables
   }
+  \item{mixed.constant}{
+vector with length equal to the number of semi-continuous variables specifying the point
+of the semi-continuous distribution with non-zero probability
+}
   \item{levOrders}{
     list of the ordered levels for each factor
   }

@@ -1,8 +1,6 @@
 .onAttach <- function(libname, pkgname) {
-    library.dynam("VIM", pkgname, libname)
-    # create new environment
-    vmGUIenv <- new.env()
-    ## load data
+#    library.dynam("VIM", pkgname, libname)
+    # load data
     data(chorizonDL, package=pkgname, lib.loc=libname)
     data(tao, package=pkgname, lib.loc=libname)
     data(sleep, package=pkgname, lib.loc=libname)
@@ -14,3 +12,5 @@
     #vmGUImenu()
     packageStartupMessage("VIM is ready to use. \n Enter vmGUImenu() to start the graphical user interface.")
 }
+
+vmGUIenvir <- new.env()

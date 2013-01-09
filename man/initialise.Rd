@@ -5,12 +5,16 @@
   Rough estimation of missing values in a vector according to its type.
 }
 \usage{
-initialise(x,mixed,method="kNN")
+initialise(x,mixed,method="kNN",mixed.constant=NULL)
 }
 \arguments{
   \item{x}{a vector.}
   \item{mixed}{a character vector containing the names of variables of type mixed (semi-continous).}
-  \item{method}{Method used for Initialization (median or kNN)} 
+  \item{method}{Method used for Initialization (median or kNN)}
+  \item{mixed.constant}{
+vector with length equal to the number of semi-continuous variables specifying the point
+of the semi-continuous distribution with non-zero probability
+} 
 }
 \details{
   Missing values are imputed with the mean for vectors of class 

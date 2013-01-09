@@ -4,13 +4,14 @@
 
 using namespace std;
 
-RcppExport SEXP gowerD(SEXP dataX, SEXP dataY,SEXP weights,SEXP ncolNUMFAC,SEXP levOrders) {
+RcppExport SEXP gowerD(SEXP dataX, SEXP dataY,SEXP weights,SEXP ncolNUMFAC,SEXP levOrders,SEXP mixedConstants) {
   BEGIN_RCPP
   Rcpp::NumericMatrix xMat(dataX);	// creates Rcpp matrix from SEXP
   Rcpp::NumericMatrix yMat(dataY);	// creates Rcpp matrix from SEXP
   Rcpp::NumericVector ncolVAR(ncolNUMFAC);	// creates Rcpp matrix from SEXP
   Rcpp::NumericVector weight(weights);	// creates Rcpp matrix from SEXP
   Rcpp::NumericVector levOrder(levOrders);  // creates Rcpp matrix from SEXP
+  Rcpp::NumericVector mixedConstant(mixedConstants);
   int nx = xMat.rows();
   int ny = yMat.rows();
   Rcpp::NumericMatrix delta(nx,ny);
@@ -27,7 +28,7 @@ RcppExport SEXP gowerD(SEXP dataX, SEXP dataY,SEXP weights,SEXP ncolNUMFAC,SEXP 
           delta(i,j)=delta(i,j)+weight(k)*a;
         }
         if(k<ncolVAR(1)){ //Categorical
-          if(xMat(i,k+ncolVAR(0))==yMat(j,k+ncolVAR(0))){
+          if(xMat(i,k+ncolVAR(0))!=yMat(j,k+ncolVAR(0))){
             delta(i,j)=delta(i,j)+weight(k+ncolVAR(0))/weightsum;
           }
         }
@@ -37,11 +38,11 @@ RcppExport SEXP gowerD(SEXP dataX, SEXP dataY,SEXP weights,SEXP ncolNUMFAC,SEXP 
         }
         if(k<ncolVAR(3)){  //Semi-Continous
           if(
-            ((xMat(i,k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2))==0)&(yMat(j,k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2))!=0))|
-            ((xMat(i,k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2))!=0)&(yMat(j,k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2))==0))
+            ((xMat(i,k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2))==mixedConstant(k))&(yMat(j,k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2))!=mixedConstant(k)))|
+            ((xMat(i,k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2))!=mixedConstant(k))&(yMat(j,k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2))==mixedConstant(k)))
             ){
               delta(i,j)=delta(i,j)+weight(k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2))/weightsum;
-          }else if((xMat(i,k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2))!=0)&(yMat(j,k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2))!=0)){
+          }else if((xMat(i,k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2))!=mixedConstant(k))&(yMat(j,k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2))!=mixedConstant(k))){
             double a=abs(xMat(i,k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2))-yMat(j,k+ncolVAR(0)+ncolVAR(1)+ncolVAR(2)))/weightsum;
             delta(i,j)=delta(i,j)+weight(k)*a;
           }

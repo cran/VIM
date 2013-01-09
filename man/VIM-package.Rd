@@ -27,11 +27,12 @@
 \details{
 \tabular{ll}{
 Package: \tab VIM\cr
-Version: \tab 3.0.0\cr
-Date: \tab 2011-12-11\cr
-Depends: \tab R (>= 2.10),e1071,car, colorspace, nnet, robustbase, tcltk, tkrplot,\cr
-         \tab sp, vcd, Rcpp\cr
-Imports: \tab car, colorspace, grDevices, robustbase, stats, tcltk, sp, utils, vcd\cr
+Version: \tab 3.0.3\cr
+Date: \tab 2013-01-09\cr
+Depends: \tab R (>= 2.10),e1071,car, colorspace, nnet, robustbase, tcltk,
+tkrplot, sp, vcd, Rcpp\cr
+Imports: \tab car, colorspace, grDevices, robustbase, stats, tcltk, sp,
+utils, vcd\cr
 License: \tab GPL (>= 2)\cr
 URL: \tab http://cran.r-project.org/package=VIM\cr
 }

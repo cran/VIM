@@ -1,5 +1,6 @@
 \name{vmGUImenu}
 \alias{vmGUImenu}
+\alias{vmGUIenvir}
 \title{GUI for Visualization and Imputation of Missing Values}
 \description{
     Graphical user interface for visualization and imputation of 
@@ -47,7 +48,8 @@ vmGUImenu()
     variables is large, because scrollbars allow to move from one part of the
     plot to another.
     
-    The section \emph{Imputation} is not yet implemented.
+    Internal information regarding the VIM GUI is stored in the environment 
+    \code{vmGUIenvir}.
 }
 \references{
 M. Templ, A. Alfons, P. Filzmoser (2012)  

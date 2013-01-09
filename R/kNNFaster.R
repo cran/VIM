@@ -45,9 +45,13 @@ which.minN <- function(x,n){
 kNN <-
     function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
         numFun = median, catFun=maxCat,
-        makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),trace=FALSE,
+        makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
         imp_var=TRUE,imp_suffix="imp",addRandom=FALSE){
   #basic checks
+  if(!is.null(mixed.constant)){
+    if(length(mixed.constant)!=length(mixed))
+      stop("length 'mixed.constant' and length 'mixed' differs")
+  }
   startTime <- Sys.time()
   nvar <- length(variable)
   ndat <- nrow(data)
@@ -161,9 +165,11 @@ kNN <-
       TF_imp <- is.na(data[,variable[j]])
       imp_dist_var <- data[TF_imp,dist_varx,drop=FALSE]#TODO:for list of dist_var
       imp_index <- INDEX[TF_imp]
-      dist_single <- function(don_dist_var,imp_dist_var,numericalX,factorsX,ordersX,mixedX,levOrdersX,don_index,imp_index,weightsx,k){
+      dist_single <- function(don_dist_var,imp_dist_var,numericalX,factorsX,ordersX,mixedX,levOrdersX,don_index,imp_index,weightsx,k,mixed.constant){
         #gd <- distance(don_dist_var,imp_dist_var,weights=weightsx)
-        gd <- gowerD(don_dist_var,imp_dist_var,weights=weightsx,numericalX,factorsX,ordersX,mixedX,levOrdersX);
+        if(is.null(mixed.constant))
+          mixed.constant <- rep(0,length(mixedX))
+        gd <- gowerD(don_dist_var,imp_dist_var,weights=weightsx,numericalX,factorsX,ordersX,mixedX,levOrdersX,mixed.constant=mixed.constant);
         rownames(gd) <- don_index
         colnames(gd) <- imp_index
         which.minNk <- function(x)1
@@ -182,7 +188,7 @@ kNN <-
       levOrdersX <- levOrders[orders%in%dist_varx]
       #print(levOrdersX)
       mixedX <-mixed[mixed%in%dist_varx]
-      mindi <- dist_single(don_dist_var,imp_dist_var,numericalX,factorsX,ordersX,mixedX,levOrdersX,don_index,imp_index,weightsx,k)
+      mindi <- dist_single(don_dist_var,imp_dist_var,numericalX,factorsX,ordersX,mixedX,levOrdersX,don_index,imp_index,weightsx,k,mixed.constant)
       getI <- function(x)data[x,variable[j]]
       if(trace)
         cat(sum(is.na(data[,variable[j]])),"items of","variable:",variable[j]," imputed\n")

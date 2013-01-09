@@ -44,7 +44,7 @@ export(
     TKRpbox,
     TKRscattmatrixMiss,
     vmGUImenu,
-    gowerD,hotdeck,kNN,sampleCat,maxCat,which.minN
+    gowerD,hotdeck,kNN,sampleCat,maxCat,which.minN,vmGUIenvir
 )
 
 S3method(plot, aggr)

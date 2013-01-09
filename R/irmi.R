@@ -1,15 +1,19 @@
-#Authors: Alexander Kowarik and Matthias Templ, Statistics Austria
-`irmi` <- function(x, eps=5, maxit=100, mixed=NULL, count=NULL, step=FALSE, 
+`irmi` <- function(x, eps=5, maxit=100, mixed=NULL,mixed.constant=NULL, count=NULL, step=FALSE, 
     robust=FALSE, takeAll=TRUE,
     noise=TRUE, noise.factor=1, force=FALSE,
     robMethod="MM", force.mixed=TRUE, mi=1, 
     addMixedFactors=FALSE, trace=FALSE,init.method="kNN"){
+#Authors: Alexander Kowarik and Matthias Templ, Statistics Austria, GPL 2 or newer, version: 15. Nov. 2012
   #object mixed conversion into the right format (vector of variable names of type mixed)	
   if(!is.data.frame(x)){
     if(is.matrix(x))
       x <- as.data.frame(x)
     else
       stop("data frame must be provided")
+  }
+  if(!is.null(mixed.constant)&&!is.null(mixed)){
+    if(length(mixed)!=length(mixed.constant))
+      stop("The length of 'mixed' and 'mixed.constant' differ.")
   }
   if(!is.null(mixed)){
     if(!is.character(mixed)){
@@ -22,19 +26,23 @@
           stop("the mixed parameter is not defined correct.")
         mixed <- colnames(x)[mixed]
       }      
+    }else if(!all(mixed%in%colnames(x))){
+      stop("Not all mixed variables are found in the colnames of the input dataset.")
     }
   }
   if(!is.null(count)){
     if(!is.character(count)){
       if(is.logical(count)){
         if(length(count)!=length(colnames(x)))
-          stop("the mixed parameter is not defined correct.")
+          stop("the count parameter is not defined correct.")
         count <- colnames(x)[count]
       }else if(is.numeric(count)){
         if(max(count)>length(colnames(x)))
-          stop("the mixed parameter is not defined correct.")
+          stop("the count parameter is not defined correct.")
         count <- colnames(x)[count]
       }      
+    }else if(!all(count%in%colnames(x))){
+      stop("Not all count variables are found in the colnames of the input dataset.")
     }
   }
   class1 <- function(x) class(x)[1] 
@@ -71,7 +79,6 @@
   }
   missingSummary <- cbind(types,apply(x,2,function(x)sum(is.na(x))))
   colnames(missingSummary) <- c("type","#missing")
-  
   
   
 #				 save(x, file="xtest.RData")				 
@@ -128,7 +135,7 @@
       origLevels[[f]] <- levels(x[,factors[f]])
       levels(x[,factors[f]]) <- 0:(length(origLevels[[f]])-1)
     }
-  }else factors <- character(0)
+  } else factors <- character(0)
   
   VarswithNA <-vector()
   
@@ -150,7 +157,7 @@
   ## initialisiere
   #for( j in 1:ncol(x) ) {
     #print(paste("HIER:", j))
-    x <- initialise(x,mixed=mixed,method=init.method)  
+    x <- initialise(x,mixed=mixed,method=init.method,mixed.constant=mixed.constant)  
   #}
   
   ## round count variables:
@@ -162,6 +169,7 @@
   
   if(trace) print(head(x))
   mixedTF <- FALSE
+  mixedConstant <- 0
   ### outer loop
   d <- 99999
   it <- 0
@@ -184,9 +192,12 @@
       if(!is.null(mixed)&&addMixedFactors){
         if(any(names(xPart)%in%mixed)){
           mixedIndex <- which(names(xPart)%in%mixed)
-          for(i in 1:length(mixedIndex)){
-            namenew <- paste(names(xPart)[mixedIndex[i]],"ADDMIXED",sep="")
-            xPart[,namenew] <- as.numeric(xPart[,mixedIndex[i]]==0)
+          for(ii in 1:length(mixedIndex)){
+            namenew <- paste(names(xPart)[mixedIndex[ii]],"ADDMIXED",sep="")
+            if(is.null(mixed.constant))
+              xPart[,namenew] <- as.numeric(xPart[,mixedIndex[ii]]==0)
+            else
+              xPart[,namenew] <- as.numeric(xPart[,mixedIndex[ii]]==mixed.constant[ii])
           }          
         }
       } ## end additional xvars for mixed vars ---
@@ -198,6 +209,11 @@
       if(!is.null(mixed)){
         if(names(x)[i] %in% mixed){
           mixedTF <- TRUE
+          if(is.null(mixed.constant)){
+            mixedConstant <- 0
+          }else{
+            mixedConstant <- mixed.constant[which(mixed==names(x)[i])]
+          }
         } else{
           mixedTF <- FALSE
         }
@@ -237,7 +253,7 @@
         #print(lapply(dataForReg, class))
         #if(i==10) stop("ZUR KONTROLLE i=10")
         x[wy,i] <- getM(xReg=dataForReg, ndata=new.dat[,-1,drop=FALSE], type=meth, 
-            index=wy, mixedTF=mixedTF, factors=factors, step=step, 
+            index=wy, mixedTF=mixedTF,mixedConstant=mixedConstant, factors=factors, step=step, 
             robust=robust, noise=FALSE, force=force, robMethod)
         #if(!testdigits(x$x5)) stop()
       }	
@@ -282,6 +298,11 @@
       if(!is.null(mixed)){
         if(names(x)[i] %in% mixed){
           mixedTF <- TRUE
+          if(is.null(mixed.constant)){
+            mixedConstant <- 0
+          }else{
+            mixedConstant <- mixed.constant[which(mixed==names(x)[i])]
+          }
         }else{
           mixedTF <- FALSE
         }
@@ -297,7 +318,9 @@
       } else if( types[i]=="count"){
         meth = "count"
       }
-      if(length(wy) > 0) x[wy,i] <- getM(xReg=dataForReg, ndata=new.dat[,-1,drop=FALSE], type=meth, index=wy,mixedTF=mixedTF,factors=factors,step=step,robust=robust,noise=TRUE,noise.factor=noise.factor,force=force,robMethod)
+      if(length(wy) > 0) x[wy,i] <- getM(xReg=dataForReg, ndata=new.dat[,-1,drop=FALSE], 
+            type=meth, index=wy,mixedTF=mixedTF,mixedConstant=mixedConstant,factors=factors,
+            step=step,robust=robust,noise=TRUE,noise.factor=noise.factor,force=force,robMethod)
     }
   }
   ## End NOISE
@@ -324,6 +347,10 @@
         if(!is.null(mixed)){
           if(names(x)[i] %in% mixed){
             mixedTF <- TRUE
+            if(is.null(mixed.constant))
+              mixedConstant <- 0
+            else
+              mixedConstant <- mixed.constant[which(mixed==names(x)[i])]
           }else{
             mixedTF <- FALSE
           }
@@ -332,7 +359,7 @@
         new.dat <- data.frame(cbind(rep(1,length(wy)), xPart[wy,,drop=FALSE])) 
         if( class(dataForReg$y) == "numeric" ) meth = "numeric" else if( class(dataForReg$y) == "factor" & length(levels(dataForReg$y))==2) meth = "bin" else meth = "factor"
         ## replace initialised missings:
-        if(length(wy) > 0) x[wy,i] <- getM(xReg=dataForReg, ndata=new.dat[,-1,drop=FALSE], type=meth, index=wy,mixedTF=mixedTF,factors=factors,step=step,robust=robust,noise=TRUE,noise.factor=noise.factor,force=force,robMethod)
+        if(length(wy) > 0) x[wy,i] <- getM(xReg=dataForReg, ndata=new.dat[,-1,drop=FALSE], type=meth, index=wy,mixedTF=mixedTF,mixedConstant=mixedConstant,factors=factors,step=step,robust=robust,noise=TRUE,noise.factor=noise.factor,force=force,robMethod)
       }
       mimp[[m]] <- x
       x <- xSave1
@@ -344,7 +371,18 @@
   ## Recode factors to their original coding
   if(length(factors)>0){
     for(f in 1:length(factors)){
-      levels(x[,factors[f]]) <- origLevels[[f]]
+#		cat("vorher\n")
+#		print(str(x))
+		
+#		print(origLevels[[f]])
+		if(mi>1){
+			for(mii in 1:mi)
+				levels(x[[mii]][,factors[f]]) <- origLevels[[f]]
+		}else{
+			levels(x[,factors[f]]) <- origLevels[[f]]
+		}
+      
+#	  cat("nachher\n")
     }
   }
   cat("Imputation performed on the following data set:\n")
@@ -376,7 +414,7 @@ Inter.list <- function(A){ # common entries from a list of vectors
   levels(as.factor(a[TF]))
 }
 
-`initialise` <- function(x,mixed,method="kNN"){
+`initialise` <- function(x,mixed,method="kNN",mixed.constant=NULL){
   if(method=="median"){
     for( j in 1:ncol(x) ) {
       xx <- x[,j]
@@ -389,15 +427,15 @@ Inter.list <- function(A){ # common entries from a list of vectors
       x[,j] <- xx
     }
   }else{
-    x <- invisible(kNN(x,imp_var=FALSE,mixed=mixed))
+    x <- invisible(kNN(x,imp_var=FALSE,mixed=mixed,mixed.constant=mixed.constant))
   }
   return(x)                         
 }
 
 ## switch function to automatically select methods
-getM <- function(xReg, ndata, type, index,mixedTF,factors,step,robust,noise,noise.factor=1,force=FALSE, robMethod="MM") {
+getM <- function(xReg, ndata, type, index,mixedTF,mixedConstant,factors,step,robust,noise,noise.factor=1,force=FALSE, robMethod="MM") {
   switch(type,
-      numeric = useLM(xReg, ndata, index,mixedTF,factors,step,robust,noise,noise.factor,force,robMethod),
+      numeric = useLM(xReg, ndata, index,mixedTF,mixedConstant,factors,step,robust,noise,noise.factor,force,robMethod),
       factor  = useMN(xReg, ndata, index,factors,step,robust),
       bin     = useB(xReg, ndata, index,factors,step,robust),
       count   = useGLMcount(xReg, ndata, index, factors, step, robust)
@@ -405,7 +443,7 @@ getM <- function(xReg, ndata, type, index,mixedTF,factors,step,robust,noise,nois
 }
 
 ### LM+GLM --- useLM start
-useLM <- function(xReg,  ndata, wy, mixedTF, factors, step, robust, noise, noise.factor, force, robMethod){
+useLM <- function(xReg,  ndata, wy, mixedTF,mixedConstant, factors, step, robust, noise, noise.factor, force, robMethod){
   n <- nrow(xReg)
   factors <- Inter(list(colnames(xReg),factors))
   ## for semicontinuous variables
@@ -421,7 +459,8 @@ useLM <- function(xReg,  ndata, wy, mixedTF, factors, step, robust, noise, noise
       }
     }
     xReg1 <- xReg
-    xReg1$y[xReg1$y!=0] <- 1
+    xReg1$y[xReg$y==mixedConstant] <- 0
+    xReg1$y[xReg$y!=mixedConstant] <- 1
     if(!robust)
       glm.bin <- glm(y ~ . , data=xReg1, family="binomial")
     else{
@@ -438,7 +477,7 @@ useLM <- function(xReg,  ndata, wy, mixedTF, factors, step, robust, noise, noise
     imp <- predict(glm.bin, newdata=ndata, type="response")
     imp[imp < 0.5] <- 0
     imp[imp >= 0.5] <- 1
-    xReg <- xReg[xReg$y > 0,]
+    xReg <- xReg[xReg$y != mixedConstant,]
     factors2 <- factors[!factors%in%delFactors]
     if(length(factors2) > 0){
       for(f in 1:length(factors2)){
@@ -513,8 +552,10 @@ useLM <- function(xReg,  ndata, wy, mixedTF, factors, step, robust, noise, noise
     }
   } else
     imp2 <- predict(glm.num, newdata=ndata[imp==1,,drop=FALSE])
-  imp[imp==1] <- imp2
-  return(imp)
+    imp3 <- imp
+    imp3[imp==0] <- mixedConstant
+    imp3[imp==1] <- imp2
+  return(imp3)
 #		library(VGAM, warn.conflicts = FALSE, verbose=FALSE)
 # -end useLM-
 }
