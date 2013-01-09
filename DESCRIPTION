@@ -1,5 +1,5 @@
 Package: VIM
-Version: 3.0.3
+Version: 3.0.3.1
 Date: 2013-01-09
 Title: Visualization and Imputation of Missing Values
 Author: Matthias Templ, Andreas Alfons, Alexander Kowarik, Bernd
@@ -22,6 +22,7 @@ Description: This package introduces new tools for the visualization of
         methods.
 License: GPL (>= 2)
 URL: http://cran.r-project.org/package=VIM
-Packaged: 2013-01-09 14:27:02 UTC; templ
+Packaged: 2013-04-11 13:49:44 UTC; ripley
 Repository: CRAN
-Date/Publication: 2013-01-09 17:22:16
+Date/Publication: 2013-04-11 15:53:24
+NeedsCompilation: yes

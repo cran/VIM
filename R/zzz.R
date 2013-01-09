@@ -6,7 +6,7 @@
     data(sleep, package=pkgname, lib.loc=libname)
     data(kola.background, package=pkgname, lib.loc=libname)
     # prepare GUI
-    tklibs <- file.path(.find.package(pkgname, lib.loc=libname)[1], "tklibs")
+    tklibs <- file.path(find.package(pkgname, lib.loc=libname)[1], "tklibs")
     addTclPath(tklibs)
     tclRequire("BWidget")
     #vmGUImenu()
