@@ -15,6 +15,95 @@
 #donorcond - list of conditions for a donor e.g. "<=10000"
 #TODO: Donors from cold deck
 
+
+
+#' k-Nearest Neighbour Imputation
+#' 
+#' k-Nearest Neighbour Imputation based on a variation of the Gower Distance
+#' for numerical, categorical, ordered and semi-continous variables.
+#' 
+#' The function sampleCat samples with probabilites corresponding to the
+#' occurrence of the level in the NNs. The function maxCat chooses the level
+#' with the most occurrences and random if the maximum is not unique. The
+#' function gowerD is used by kNN to compute the distances for numerical,
+#' factor ordered and semi-continous variables. The function which.minN is used
+#' by kNN.
+#' 
+#' @aliases kNN sampleCat maxCat gowerD which.minN
+#' @param data data.frame or matrix
+#' @param variable variables where missing values should be imputed
+#' @param metric metric to be used for calculating the distances between
+#' @param k number of Nearest Neighbours used
+#' @param dist_var names or variables to be used for distance calculation
+#' @param weights weights for the variables for distance calculation
+#' @param numFun function for aggregating the k Nearest Neighbours in the case
+#' of a numerical variable
+#' @param catFun function for aggregating the k Nearest Neighbours in the case
+#' of a categorical variable
+#' @param makeNA vector of values, that should be converted to NA
+#' @param NAcond a condition for imputing a NA
+#' @param impNA TRUE/FALSE whether NA should be imputed
+#' @param donorcond condition for the donors e.g. ">5"
+#' @param trace TRUE/FALSE if additional information about the imputation
+#' process should be printed
+#' @param imp_var TRUE/FALSE if a TRUE/FALSE variables for each imputed
+#' variable should be created show the imputation status
+#' @param imp_suffix suffix for the TRUE/FALSE variables showing the imputation
+#' status
+#' @param addRandom TRUE/FALSE if an additional random variable should be added
+#' for distance calculation
+#' @param mixed names of mixed variables
+#' @param mixed.constant vector with length equal to the number of
+#' semi-continuous variables specifying the point of the semi-continuous
+#' distribution with non-zero probability
+#' @return the imputed data set.
+#' @author Alexander Kowarik
+#' @keywords manip
+#' @examples
+#' 
+#' data(sleep)
+#' kNN(sleep)
+#' 
+#' @export kNN
+#' @S3method kNN data.frame
+#' @S3method kNN survey.design
+#' @S3method kNN default
+kNN <- function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
+                numFun = median, catFun=maxCat,
+                makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
+                imp_var=TRUE,imp_suffix="imp",addRandom=FALSE) {
+  UseMethod("kNN", data)
+}
+
+kNN.data.frame <- function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
+                           numFun = median, catFun=maxCat,
+                           makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
+                           imp_var=TRUE,imp_suffix="imp",addRandom=FALSE) {
+  kNN_work(data, variable, metric, k, dist_var,weights, numFun, catFun,
+           makeNA, NAcond, impNA, donorcond, mixed, mixed.constant, trace,
+           imp_var, imp_suffix, addRandom)
+}
+
+kNN.survey.design <- function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
+                              numFun = median, catFun=maxCat,
+                              makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
+                              imp_var=TRUE,imp_suffix="imp",addRandom=FALSE) {
+  data$variables <- kNN_work(data$variables, variable, metric, k, dist_var,weights, numFun, catFun,
+           makeNA, NAcond, impNA, donorcond, mixed, mixed.constant, trace,
+           imp_var, imp_suffix, addRandom)
+  data$call <- sys.call(-1)
+  data
+}
+
+kNN.default <- function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
+                        numFun = median, catFun=maxCat,
+                        makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
+                        imp_var=TRUE,imp_suffix="imp",addRandom=FALSE) {
+  kNN_work(as.data.frame(data), variable, metric, k, dist_var,weights, numFun, catFun,
+           makeNA, NAcond, impNA, donorcond, mixed, mixed.constant, trace,
+           imp_var, imp_suffix, addRandom)
+}
+
 sampleCat <- function(x){
   #sample with probabilites corresponding to there number in the NNs
   if(!is.factor(x))
@@ -42,7 +131,8 @@ which.minN <- function(x,n){
   }
   as.numeric(out)
 }
-kNN <-
+
+kNN_work <-
     function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
         numFun = median, catFun=maxCat,
         makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
@@ -61,8 +151,7 @@ kNN <-
   if(is.matrix(data))
     data <- as.data.frame(data)
   #impNA==FALSE -> NAs should remain NAs (Routing NAs!?)
-  if(!impNA)
-    data[is.na(data)] <- "THISISanNASTRINGthatshouldnotbeimputedbytheroutine"
+  indexNAs <- is.na(data)
   if(!is.null(makeNA)){
     if(length(makeNA)!=nvar)
       stop("The vector 'variable' must have the same length as the 'makeNA' list")
@@ -71,15 +160,21 @@ kNN <-
         data[data[,variable[i]]%in%makeNA[[i]],variable[i]] <- NA 
       }
     }
+    if(!impNA){
+      indexNA2s <- is.na(data)&!indexNAs
+    }else
+      indexNA2s <- is.na(data)
+  }else{
+    indexNA2s <- is.na(data)
   }
-  if(!any(is.na(data)))
+  if(sum(indexNA2s)<=0)
     stop("Nothing to impute, because no NA are present (also after using makeNA)")
   if(imp_var){
     imp_vars <- paste(variable,"_",imp_suffix,sep="")
     data[,imp_vars] <- FALSE
     for(i in 1:length(variable)){
-      data[is.na(data[,variable[i]]),imp_vars[i]] <- TRUE
-        if(!any(is.na(data[,variable[i]])))
+      data[indexNA2s[,variable[i]],imp_vars[i]] <- TRUE
+        if(!any(indexNA2s[,variable[i]]))
           data<-data[,-which(names(data)==paste(variable[i],"_",imp_suffix,sep=""))]
     }
   }
@@ -161,8 +256,7 @@ kNN <-
         don_dist_var <- data[TF,dist_varx,drop=FALSE]#TODO:for list of dist_var
         don_index <- INDEX[TF]
       }
-
-      TF_imp <- is.na(data[,variable[j]])
+      TF_imp <- indexNA2s[,variable[j]]
       imp_dist_var <- data[TF_imp,dist_varx,drop=FALSE]#TODO:for list of dist_var
       imp_index <- INDEX[TF_imp]
       dist_single <- function(don_dist_var,imp_dist_var,numericalX,factorsX,ordersX,mixedX,levOrdersX,don_index,imp_index,weightsx,k,mixed.constant){
@@ -191,22 +285,20 @@ kNN <-
       mindi <- dist_single(don_dist_var,imp_dist_var,numericalX,factorsX,ordersX,mixedX,levOrdersX,don_index,imp_index,weightsx,k,mixed.constant)
       getI <- function(x)data[x,variable[j]]
       if(trace)
-        cat(sum(is.na(data[,variable[j]])),"items of","variable:",variable[j]," imputed\n")
+        cat(sum(indexNA2s[,variable[j]]),"items of","variable:",variable[j]," imputed\n")
       kNNs <- as.matrix(apply(mindi,2,getI))
       if(k==1){
         kNNs <- matrix(kNNs,nrow=1)
       }
       if(variable[j]%in%factors)
-        data[is.na(data[,variable[j]]),variable[j]] <- apply(kNNs,2,catFun)
+        data[indexNA2s[,variable[j]],variable[j]] <- apply(kNNs,2,catFun)
       else if(is.integer(data[,variable[j]])){
-        data[is.na(data[,variable[j]]),variable[j]] <- round(apply(kNNs,2,numFun))
+        data[indexNA2s[,variable[j]],variable[j]] <- round(apply(kNNs,2,numFun))
       }else
-        data[is.na(data[,variable[j]]),variable[j]] <- apply(kNNs,2,numFun)
+        data[indexNA2s[,variable[j]],variable[j]] <- apply(kNNs,2,numFun)
     }
   }
   print(difftime(startTime,Sys.time()))  
-  if(!impNA)
-    data[data=="THISISanNASTRINGthatshouldnotbeimputedbytheroutine"] <- NA
   if(addRandom)
     data <- data[,-which(names(data)=="RandomVariableForImputation")]
   data

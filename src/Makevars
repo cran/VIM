@@ -1,2 +1,2 @@
-PKG_LIBS = -L/home/templ/R/x86_64-pc-linux-gnu-library/2.15/Rcpp/lib -lRcpp -Wl,-rpath,/home/templ/R/x86_64-pc-linux-gnu-library/2.15/Rcpp/lib
-PKG_CPPFLAGS = -I/home/templ/R/x86_64-pc-linux-gnu-library/2.15/Rcpp/include
+PKG_CPPFLAGS = -I.
+PKG_LIBS = `${R_HOME}/bin/Rscript -e "Rcpp:::LdFlags()"`

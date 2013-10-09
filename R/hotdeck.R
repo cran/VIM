@@ -10,7 +10,71 @@
 #NAcond - list of conditions for each variable to create NAs there (not yet implemented)
 #donorcond - list of conditions for a donor e.g. "<=10000"
 #TODO: Donors from cold deck
+
+
+
+#' Hot-Deck Imputation
+#' 
+#' Implementation of the popular Sequential, Random (within a domain) hot-deck
+#' algorithm for imputation.
+#' 
+#' 
+#' @param data data.frame or matrix
+#' @param variable variables where missing values should be imputed
+#' @param ord_var variables for sorting the data set before imputation
+#' @param domain_var variables for building domains and impute within these
+#' domains
+#' @param makeNA vector of values, that should be converted to NA
+#' @param NAcond a condition for imputing a NA
+#' @param impNA TRUE/FALSE whether NA should be imputed
+#' @param donorcond condition for the donors e.g. ">5"
+#' @param imp_var TRUE/FALSE if a TRUE/FALSE variables for each imputed
+#' variable should be created show the imputation status
+#' @param imp_suffix suffix for the TRUE/FALSE variables showing the imputation
+#' status
+#' @return the imputed data set.
+#' @author Alexander Kowarik
+#' @keywords manip
+#' @examples
+#' 
+#' data(sleep)
+#' sleepI <- hotdeck(sleep)
+#' sleepI2 <- hotdeck(sleep,ord_var="BodyWgt",domain_var="Pred")
+#' 
+#' @export hotdeck
+#' @S3method hotdeck data.frame
+#' @S3method hotdeck survey.design
+#' @S3method hotdeck default
 hotdeck <- function(data, variable=NULL, ord_var=NULL,domain_var=NULL,
+                    makeNA=NULL,NAcond=NULL,impNA=TRUE,donorcond=NULL,
+                    imp_var=TRUE,imp_suffix="imp") {
+  UseMethod("hotdeck", data)
+}
+
+hotdeck.data.frame <- function(data, variable=NULL, ord_var=NULL,domain_var=NULL,
+                               makeNA=NULL,NAcond=NULL,impNA=TRUE,donorcond=NULL,
+                               imp_var=TRUE,imp_suffix="imp") {
+  hotdeck_work(data, variable, ord_var, domain_var, makeNA, NAcond, impNA, donorcond,
+               imp_var, imp_suffix)
+}
+
+hotdeck.survey.design <- function(data, variable=NULL, ord_var=NULL,domain_var=NULL,
+                                  makeNA=NULL,NAcond=NULL,impNA=TRUE,donorcond=NULL,
+                                  imp_var=TRUE,imp_suffix="imp") {
+  data$variables <- hotdeck_work(data$variables, variable, ord_var, domain_var, makeNA, NAcond, impNA, donorcond,
+               imp_var, imp_suffix)
+  data$call <- sys.call(-1)
+  data
+}
+
+hotdeck.default <- function(data, variable=NULL, ord_var=NULL,domain_var=NULL,
+                            makeNA=NULL,NAcond=NULL,impNA=TRUE,donorcond=NULL,
+                            imp_var=TRUE,imp_suffix="imp") {
+  hotdeck_work(as.data.frame(data), variable, ord_var, domain_var, makeNA, NAcond, impNA, donorcond,
+               imp_var, imp_suffix)
+}
+
+hotdeck_work <- function(data, variable=NULL, ord_var=NULL,domain_var=NULL,
     makeNA=NULL,NAcond=NULL,impNA=TRUE,donorcond=NULL,
     imp_var=TRUE,imp_suffix="imp"){
   #basic checks
