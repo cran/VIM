@@ -92,25 +92,30 @@ regressionImp_work <- function(formula, family, robust, data,imp_var,imp_suffix,
             else
               mod <- glm(form,data=data,family=fam)
           }else{
-            fam <- "multinomial"
             TFna <- TFna2&!is.na(data[,lhsV])
-            mod <- glmnet(model.matrix(form,data[TFna,]),data[TFna,lhsV],family=fam)
+            mod <- multinom(form,data[TFna,])
           }
         }
         if(imp_var){
-          data$NEWIMPTFVARIABLE <- is.na(data[,lhsV])
-          colnames(data)[ncol(data)] <- paste(lhsV,"_",imp_suffix,sep="")
+          if(imp_var%in%colnames(data)){
+            data[,paste(lhsV,"_",imp_suffix,sep="")] <- as.logical(data[,paste(lhsV,"_",imp_suffix,sep="")])
+            warning(paste("The following TRUE/FALSE imputation status variables will be updated:",
+                    paste(lhsV,"_",imp_suffix,sep="")))
+          }else{
+            data$NEWIMPTFVARIABLE <- is.na(data[,lhsV])
+            colnames(data)[ncol(data)] <- paste(lhsV,"_",imp_suffix,sep="")
+          }
         }
         TFna1 <- is.na(data[,lhsV])
         TFna3 <- TFna1&TFna2
         tmp <- data[TFna3,]
         tmp[,lhsV] <- 1
         if(nLev>2){
-          modcv <- cv.glmnet(model.matrix(form,data[TFna,]),data[TFna,lhsV],family="multinomial")
-          pre <- predict(mod,newx=model.matrix(form,tmp),type="response",s=modcv$lambda.1se)[,,1]
+          
           if(mod_cat){
-            pre <- levels(data[,lhsV])[apply(pre,1,which.max)]
+            pre <- predict(mod,new.data=tmp)
           }else{
+            pre <- predict(mod,new.data=tmp,type="probs")
             pre <- levels(data[,lhsV])[apply(pre,1,function(x)sample(1:length(x),1,prob=x))]
           }
         }else if(nLev==2){

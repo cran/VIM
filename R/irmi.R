@@ -33,7 +33,8 @@
 #' @param robMethod regression method when the response is continuous.
 #' @param force.mixed if TRUE, the algorithm tries to find a solution in any
 #' case, possible by using different robust methods automatically.
-#' @param addMixedFactors
+#' @param addMixedFactors if TRUE add additional factor variable for each mixed variable as X variable in the regression
+#' @param modelFormulas a named list with the name of variables for the  rhs of the formulas, which must contain a rhs formula for each variable with missing values, it should look like list(y1=c("x1","x2"),y2=c("x1","x3"))
 #' 
 #' if factor variables for the mixed variables should be created for the
 #' regression models
@@ -42,6 +43,8 @@
 #' TRUE.
 #' @param init.method Method for initialization of missing values (kNN or
 #' median)
+#' @param multinom.method Method for estimating the multinomial models
+#' (current default and only available method is multinom)
 #' @return the imputed data set.
 #' @author Matthias Templ, Alexander Kowarik
 #' @seealso \code{\link[mi]{mi}}
@@ -63,61 +66,74 @@
 #' imp_testdata2 <- irmi(testdata$wna,mixed=testdata$mixed,mixed.constant=c(-10,log(0.001)))
 #' imp_testdata2$m2 <- exp(imp_testdata2$m2)-0.001
 #' 
+#' #example with fixed formulas for the variables with missing
+#' form=list(
+#' NonD=c("BodyWgt","BrainWgt"),
+#' Dream=c("BodyWgt","BrainWgt"),
+#' Sleep=c("BrainWgt"),
+#' Span=c("BodyWgt"),
+#' Gest=c("BodyWgt","BrainWgt")
+#' )
+#' irmi(sleep,modelFormulas=form,trace=TRUE)
 #' 
 #' @export irmi
 #' @S3method irmi data.frame
 #' @S3method irmi survey.design
 #' @S3method irmi default
 irmi <- function(x, eps=5, maxit=100, mixed=NULL,mixed.constant=NULL, count=NULL, step=FALSE, 
-                 robust=FALSE, takeAll=TRUE,
-                 noise=TRUE, noise.factor=1, force=FALSE,
-                 robMethod="MM", force.mixed=TRUE, mi=1, 
-                 addMixedFactors=FALSE, trace=FALSE,init.method="kNN") {
+    robust=FALSE, takeAll=TRUE,
+    noise=TRUE, noise.factor=1, force=FALSE,
+    robMethod="MM", force.mixed=TRUE, mi=1, 
+    addMixedFactors=FALSE, trace=FALSE,init.method="kNN",modelFormulas=NULL,multinom.method="multinom") {
   UseMethod("irmi", x)
 }
 
 irmi.data.frame <- function(x, eps=5, maxit=100, mixed=NULL,mixed.constant=NULL, count=NULL, step=FALSE, 
-                            robust=FALSE, takeAll=TRUE,
-                            noise=TRUE, noise.factor=1, force=FALSE,
-                            robMethod="MM", force.mixed=TRUE, mi=1, 
-                            addMixedFactors=FALSE, trace=FALSE,init.method="kNN") {
+    robust=FALSE, takeAll=TRUE,
+    noise=TRUE, noise.factor=1, force=FALSE,
+    robMethod="MM", force.mixed=TRUE, mi=1, 
+    addMixedFactors=FALSE, trace=FALSE,init.method="kNN",modelFormulas=NULL,multinom.method="multinom") {
   irmi_work(x, eps, maxit, mixed, mixed.constant, count, step, 
-            robust, takeAll, noise, noise.factor, force,
-            robMethod, force.mixed, mi, addMixedFactors, 
-            trace,init.method)
+      robust, takeAll, noise, noise.factor, force,
+      robMethod, force.mixed, mi, addMixedFactors, 
+      trace,init.method,modelFormulas=modelFormulas,multinom.method=multinom.method)
 }
 
 irmi.survey.design <- function(x, eps=5, maxit=100, mixed=NULL,mixed.constant=NULL, count=NULL, step=FALSE, 
-                               robust=FALSE, takeAll=TRUE,
-                               noise=TRUE, noise.factor=1, force=FALSE,
-                               robMethod="MM", force.mixed=TRUE, mi=1, 
-                               addMixedFactors=FALSE, trace=FALSE,init.method="kNN") {
+    robust=FALSE, takeAll=TRUE,
+    noise=TRUE, noise.factor=1, force=FALSE,
+    robMethod="MM", force.mixed=TRUE, mi=1, 
+    addMixedFactors=FALSE, trace=FALSE,init.method="kNN",modelFormulas=NULL,multinom.method="multinom") {
   x$variables <- irmi_work(x$variables, eps, maxit, mixed, mixed.constant, count, step, 
-                           robust, takeAll, noise, noise.factor, force,
-                           robMethod, force.mixed, mi, addMixedFactors, 
-                           trace,init.method)
+      robust, takeAll, noise, noise.factor, force,
+      robMethod, force.mixed, mi, addMixedFactors, 
+      trace,init.method,modelFormulas=modelFormulas,multinom.method=multinom.method)
   x$call <- sys.call(-1)
   x
 }
 
 irmi.default <- function(x, eps=5, maxit=100, mixed=NULL,mixed.constant=NULL, count=NULL, step=FALSE, 
-                         robust=FALSE, takeAll=TRUE,
-                         noise=TRUE, noise.factor=1, force=FALSE,
-                         robMethod="MM", force.mixed=TRUE, mi=1, 
-                         addMixedFactors=FALSE, trace=FALSE,init.method="kNN") {
+    robust=FALSE, takeAll=TRUE,
+    noise=TRUE, noise.factor=1, force=FALSE,
+    robMethod="MM", force.mixed=TRUE, mi=1, 
+    addMixedFactors=FALSE, trace=FALSE,init.method="kNN",modelFormulas=NULL,multinom.method="multinom") {
   irmi_work(as.data.frame(x), eps, maxit, mixed, mixed.constant, count, step, 
-            robust, takeAll, noise, noise.factor, force,
-            robMethod, force.mixed, mi, addMixedFactors, 
-            trace,init.method)
+      robust, takeAll, noise, noise.factor, force,
+      robMethod, force.mixed, mi, addMixedFactors, 
+      trace,init.method,modelFormulas=modelFormulas,multinom.method=multinom.method)
 }
 
 `irmi_work` <- function(x, eps=5, maxit=100, mixed=NULL,mixed.constant=NULL, count=NULL, step=FALSE, 
     robust=FALSE, takeAll=TRUE,
     noise=TRUE, noise.factor=1, force=FALSE,
     robMethod="MM", force.mixed=TRUE, mi=1, 
-    addMixedFactors=FALSE, trace=FALSE,init.method="kNN"){
+    addMixedFactors=FALSE, trace=FALSE,init.method="kNN",modelFormulas=NULL,multinom.method="multinom"){
 #Authors: Alexander Kowarik and Matthias Templ, Statistics Austria, GPL 2 or newer, version: 15. Nov. 2012
-  #object mixed conversion into the right format (vector of variable names of type mixed)	
+  #object mixed conversion into the right format (vector of variable names of type mixed)
+#TODO: Data sets with variables "y" might fail
+  if(trace){
+    cat("Method for multinomial models:",multinom.method,"\n")
+  }
   if(!is.data.frame(x)){
     if(is.matrix(x))
       x <- as.data.frame(x)
@@ -269,8 +285,8 @@ irmi.default <- function(x, eps=5, maxit=100, mixed=NULL,mixed.constant=NULL, co
   
   ## initialisiere
   #for( j in 1:ncol(x) ) {
-    #print(paste("HIER:", j))
-    x <- initialise(x,mixed=mixed,method=init.method,mixed.constant=mixed.constant)  
+  #print(paste("HIER:", j))
+  x <- initialise(x,mixed=mixed,method=init.method,mixed.constant=mixed.constant)  
   #}
   
   ## round count variables:
@@ -337,7 +353,7 @@ irmi.default <- function(x, eps=5, maxit=100, mixed=NULL,mixed.constant=NULL, co
       #print(attributes(dataForReg$y)$cn)
       
       
-      if( types[i]=="numeric" || types[i] =="mixed"){ ## todo: ausserhalb der Schleife!!
+      if( types[i]=="integer"||types[i]=="numeric" || types[i] =="mixed"){ ## todo: ausserhalb der Schleife!!
         meth = "numeric" 
       } else if( types[i]=="binary" ){ 
         meth = "bin" 
@@ -365,9 +381,21 @@ irmi.default <- function(x, eps=5, maxit=100, mixed=NULL,mixed.constant=NULL, co
           print(meth)
         #print(lapply(dataForReg, class))
         #if(i==10) stop("ZUR KONTROLLE i=10")
+        if(!is.null(modelFormulas)){
+          TFform <- names(modelFormulas)==colnames(x)[i]
+          if(any(TFform))
+            activeFormula <- modelFormulas[[which(TFform)]]
+          else
+            activeFormula <- names(dataForReg)[names(dataForReg)!="y"]
+        }else
+          activeFormula <- names(dataForReg)[names(dataForReg)!="y"]
+        if(trace){
+          print(paste("formula used:",paste(colnames(x)[i],"~",paste(activeFormula,collapse="+"))))
+          if(Sys.info()[1] == "Windows") flush.console()
+        }
         x[wy,i] <- getM(xReg=dataForReg, ndata=new.dat[,-1,drop=FALSE], type=meth, 
             index=wy, mixedTF=mixedTF,mixedConstant=mixedConstant, factors=factors, step=step, 
-            robust=robust, noise=FALSE, force=force, robMethod)
+            robust=robust, noise=FALSE, force=force, robMethod,form=activeFormula,multinom.method=multinom.method)
         #if(!testdigits(x$x5)) stop()
       }	
     }  ## end inner loop
@@ -435,9 +463,17 @@ irmi.default <- function(x, eps=5, maxit=100, mixed=NULL,mixed.constant=NULL, co
       } else if( types[i]=="count"){
         meth = "count"
       }
+      if(!is.null(modelFormulas)){
+        TFform <- names(modelFormulas)==colnames(x)[i]
+        if(any(TFform))
+          activeFormula <- modelFormulas[[which(TFform)]]
+        else
+          activeFormula <- names(dataForReg)[names(dataForReg)!="y"]
+      }else
+        activeFormula <- names(dataForReg)[names(dataForReg)!="y"]
       if(length(wy) > 0) x[wy,i] <- getM(xReg=dataForReg, ndata=new.dat[,-1,drop=FALSE], 
             type=meth, index=wy,mixedTF=mixedTF,mixedConstant=mixedConstant,factors=factors,
-            step=step,robust=robust,noise=TRUE,noise.factor=noise.factor,force=force,robMethod)
+            step=step,robust=robust,noise=TRUE,noise.factor=noise.factor,force=force,robMethod,form=activeFormula,multinom.method=multinom.method)
     }
   }
   ## End NOISE
@@ -476,7 +512,17 @@ irmi.default <- function(x, eps=5, maxit=100, mixed=NULL,mixed.constant=NULL, co
         new.dat <- data.frame(cbind(rep(1,length(wy)), xPart[wy,,drop=FALSE])) 
         if( class(dataForReg$y) == "numeric" ) meth = "numeric" else if( class(dataForReg$y) == "factor" & length(levels(dataForReg$y))==2) meth = "bin" else meth = "factor"
         ## replace initialised missings:
-        if(length(wy) > 0) x[wy,i] <- getM(xReg=dataForReg, ndata=new.dat[,-1,drop=FALSE], type=meth, index=wy,mixedTF=mixedTF,mixedConstant=mixedConstant,factors=factors,step=step,robust=robust,noise=TRUE,noise.factor=noise.factor,force=force,robMethod)
+        if(!is.null(modelFormulas)){
+          TFform <- names(modelFormulas)==colnames(x)[i]
+          if(any(TFform))
+            activeFormula <- modelFormulas[[which(TFform)]]
+          else
+            activeFormula <- names(dataForReg)[names(dataForReg)!="y"]
+        }else
+          activeFormula <- names(dataForReg)[names(dataForReg)!="y"]
+        if(length(wy) > 0) x[wy,i] <- getM(xReg=dataForReg, ndata=new.dat[,-1,drop=FALSE], type=meth, index=wy,mixedTF=mixedTF,mixedConstant=mixedConstant,
+              factors=factors,step=step,robust=robust,noise=TRUE,
+              noise.factor=noise.factor,force=force,robMethod,form=activeFormula,multinom.method=multinom.method)
       }
       mimp[[m]] <- x
       x <- xSave1
@@ -490,14 +536,14 @@ irmi.default <- function(x, eps=5, maxit=100, mixed=NULL,mixed.constant=NULL, co
     for(f in 1:length(factors)){
 #		cat("vorher\n")
 #		print(str(x))
-		
+      
 #		print(origLevels[[f]])
-		if(mi>1){
-			for(mii in 1:mi)
-				levels(x[[mii]][,factors[f]]) <- origLevels[[f]]
-		}else{
-			levels(x[,factors[f]]) <- origLevels[[f]]
-		}
+      if(mi>1){
+        for(mii in 1:mi)
+          levels(x[[mii]][,factors[f]]) <- origLevels[[f]]
+      }else{
+        levels(x[,factors[f]]) <- origLevels[[f]]
+      }
       
 #	  cat("nachher\n")
     }
@@ -575,17 +621,17 @@ Inter.list <- function(A){ # common entries from a list of vectors
 }
 
 ## switch function to automatically select methods
-getM <- function(xReg, ndata, type, index,mixedTF,mixedConstant,factors,step,robust,noise,noise.factor=1,force=FALSE, robMethod="MM") {
+getM <- function(xReg, ndata, type, index,mixedTF,mixedConstant,factors,step,robust,noise,noise.factor=1,force=FALSE, robMethod="MM",form=NULL,multinom.method="mnlogit") {
   switch(type,
-      numeric = useLM(xReg, ndata, index,mixedTF,mixedConstant,factors,step,robust,noise,noise.factor,force,robMethod),
-      factor  = useMN(xReg, ndata, index,factors,step,robust),
-      bin     = useB(xReg, ndata, index,factors,step,robust),
-      count   = useGLMcount(xReg, ndata, index, factors, step, robust)
+      numeric = useLM(xReg, ndata, index,mixedTF,mixedConstant,factors,step,robust,noise,noise.factor,force,robMethod,form=form),
+      factor  = useMN(xReg, ndata, index,factors,step,robust,form=form,multinom.method=multinom.method),
+      bin     = useB(xReg, ndata, index,factors,step,robust,form=form),
+      count   = useGLMcount(xReg, ndata, index, factors, step, robust,form=form)
   )
 }
 
 ### LM+GLM --- useLM start
-useLM <- function(xReg,  ndata, wy, mixedTF,mixedConstant, factors, step, robust, noise, noise.factor, force, robMethod){
+useLM <- function(xReg,  ndata, wy, mixedTF,mixedConstant, factors, step, robust, noise, noise.factor, force, robMethod,form){
   n <- nrow(xReg)
   factors <- Inter(list(colnames(xReg),factors))
   ## for semicontinuous variables
@@ -603,10 +649,15 @@ useLM <- function(xReg,  ndata, wy, mixedTF,mixedConstant, factors, step, robust
     xReg1 <- xReg
     xReg1$y[xReg$y==mixedConstant] <- 0
     xReg1$y[xReg$y!=mixedConstant] <- 1
+    form <- form[form%in%names(xReg1)]
+    if(class(form)!="formula")
+      form <- as.formula(paste("y ~",paste(form,collapse="+")))
+    else
+      form <- y~.
     if(!robust)
-      glm.bin <- glm(y ~ . , data=xReg1, family="binomial")
+      glm.bin <- glm(form , data=xReg1, family="binomial")
     else{
-      glm.bin <- glm(y ~ . , data=xReg1, family="binomial")  
+      glm.bin <- glm(form , data=xReg1, family="binomial")  
     }
 #     if VGAM will be chosen instead of multinom:	  
 #	  op <- options() #Alles auskommentiert, weil VGAM draussen!
@@ -644,35 +695,47 @@ useLM <- function(xReg,  ndata, wy, mixedTF,mixedConstant, factors, step, robust
     imp <- rep(1,nrow(ndata))
   }
   ##Two-Step
+  if(class(form)!="formula"){
+    form <- form[form%in%names(xReg)]
+    if(length(form)>0)
+      form <- as.formula(paste("y ~",paste(form,collapse="+")))
+    else
+      form <- y~.
+  }else{
+    formVars <- all.vars(form)[-1]
+    if(any(!formVars%in%colnames(xReg))){
+      formVars <- formVars[formVars%in%colnames(xReg)]
+      form <- as.formula(paste("y ~",paste(formVars,collapse="+")))
+    }
+  }
   if(!robust){
-    glm.num <- glm(y ~ . , data=xReg, family="gaussian")
+    glm.num <- glm(form, data=xReg, family="gaussian")
     #cat("not ROBUST!!!!!!!!\n")
-    
   } else{
     if(exists("glm.num"))
       rm(glm.num)
     if(force){
-      try(glm.num <- rlm(y ~ . , data=xReg,method="MM"),silent=TRUE)
+      try(glm.num <- rlm(form , data=xReg,method="MM"),silent=TRUE)
       if(!exists("glm.num")){
-        try(glm.num <- lmrob(y ~ . , data=xReg),silent=TRUE)
+        try(glm.num <- lmrob(form , data=xReg),silent=TRUE)
         if(!exists("glm.num")){
-          glm.num <- rlm(y ~ . , data=xReg,method="M")
+          glm.num <- rlm(form , data=xReg,method="M")
           if(!exists("glm.num")){
-            glm.num <- glm(y ~ . , data=xReg, family="gaussian")
+            glm.num <- glm(form, data=xReg, family="gaussian")
           }
         }
       }
     } else{
       if(robMethod=="lmrob"){
-        glm.num <- lmrob(y ~ . , data=xReg)
+        glm.num <- lmrob(form , data=xReg)
       }else if(robMethod=="lqs"){
-        glm.num <- lqs(y ~ . , data=xReg)
+        glm.num <- lqs(form , data=xReg)
       }else{
-        glm.num <- rlm(y ~ . , data=xReg,method=robMethod)
+        glm.num <- rlm(form , data=xReg,method=robMethod)
       }
     } 
   }
-#  op <- options()#Alles auskommentiert, weil VGAM draußen
+#  op <- options()#Alles auskommentiert, weil VGAM draussen
 #  options(show.error.messages=FALSE)
 #  try(detach(package:VGAM))
 #  options(op)
@@ -694,16 +757,16 @@ useLM <- function(xReg,  ndata, wy, mixedTF,mixedConstant, factors, step, robust
     }
   } else
     imp2 <- predict(glm.num, newdata=ndata[imp==1,,drop=FALSE])
-    imp3 <- imp
-    imp3[imp==0] <- mixedConstant
-    imp3[imp==1] <- imp2
+  imp3 <- imp
+  imp3[imp==0] <- mixedConstant
+  imp3[imp==1] <- imp2
   return(imp3)
 #		library(VGAM, warn.conflicts = FALSE, verbose=FALSE)
 # -end useLM-
 }
 
 ## count data as response
-useGLMcount <- function(xReg,  ndata, wy, factors, step, robust){
+useGLMcount <- function(xReg,  ndata, wy, factors, step, robust,form){
   factors <- Inter(list(colnames(xReg),factors))
   if(length(factors)>0){
     for(f in 1:length(factors)){
@@ -713,13 +776,18 @@ useGLMcount <- function(xReg,  ndata, wy, factors, step, robust){
       }
     }
   }
+  form <- form[form%in%names(xReg)]
+  if(length(form)>0)
+    form <- as.formula(paste("y ~",paste(form,collapse="+")))
+  else
+    form <- y~.
   if(robust){
     #glmc <- glm(y~ ., data=xReg, family=poisson)
-    glmc <- glmrob(y~ ., data=xReg, family=poisson)
+    glmc <- glmrob(form, data=xReg, family=poisson)
     glmc$rank<-ncol(xReg)
     #glmc$coef <- glmcR$coef
   } else {
-    glmc <- glm(y~ ., data=xReg, family=poisson)
+    glmc <- glm(form, data=xReg, family=poisson)
   }
   if(step & robust) stop("both step and robust equals TRUE not provided")
   if(step){
@@ -731,7 +799,7 @@ useGLMcount <- function(xReg,  ndata, wy, factors, step, robust){
 }
 
 # categorical response
-useMN <- function(xReg, ndata,  wy, factors, step, robust){
+useMN <- function(xReg, ndata,  wy, factors, step, robust,form,multinom.method){
   factors <- Inter(list(colnames(xReg),factors))
   if(length(factors)>0){
     for(f in 1:length(factors)){
@@ -741,23 +809,25 @@ useMN <- function(xReg, ndata,  wy, factors, step, robust){
       }
     }
   }
-  # multinom statt VGAM, wenn wieder zurück auf VGAM, mssen alle 
-  #library(VGAM, warn.conflicts = FALSE, verbose=FALSE)
-  #vglm.fac <- vglm(y ~ . , data=xReg, family="multinomial")
-  sink(tmpfilemulti <- tempfile())
-  vglm.fac <- multinom(y ~ . , data=xReg)
-  sink()
-  unlink(tmpfilemulti)
-  if(step){
-    #vglm.fac <- step.vglm(vglm.fac,xReg)
-    vglm.fac <- stepAIC(vglm.fac,xReg)
+  form <- form[form%in%names(xReg)]
+  if(length(form)>0)
+    form <- as.formula(paste("y ~",paste(form,collapse="+")))
+  else
+    form <- y~.
+  if(multinom.method=="multinom"){
+    co <- capture.output(multimod <- multinom(form, data=xReg,summ=2,maxit=50,trace=FALSE))
+    if(step){
+      multimod <- stepAIC(multimod,xReg)
+    }
+    imp <- predict(multimod, newdata=ndata)
+  }else{
+   stop("multinom is the only implemented method at the moment!\n") 
   }
-  imp <- predict(vglm.fac, newdata=ndata)
-  return(imp)#return(factor(imp, labels=levels(xReg$y)[sort(unique(imp))]))
+  return(imp)
 }
 
 # binary response
-useB <- function(xReg,  ndata, wy,factors,step,robust){
+useB <- function(xReg,  ndata, wy,factors,step,robust,form){
   factors <- Inter(list(colnames(xReg),factors))
   #TODO: Faktoren mit 2 Levels und nicht Levels 0 1, funktionieren NICHT!!!!
   if(length(factors)>0){
@@ -768,11 +838,16 @@ useB <- function(xReg,  ndata, wy,factors,step,robust){
       }
     }
   }
+  form <- form[form%in%names(xReg)]
+  if(length(form)>0)
+    form <- as.formula(paste("y ~",paste(form,collapse="+")))
+  else
+    form <- y~.
   if(!robust)
-    glm.bin <- glm(y ~ . , data=xReg, family="binomial")
+    glm.bin <- glm(form , data=xReg, family="binomial")
   else{
 #		glm.bin <- BYlogreg(x0=xReg[,-1], xReg[,1]) ## BYlogreg kann niemals funken
-    glm.bin <- glm(y ~ . , data=xReg, family="binomial")		
+    glm.bin <- glm(form , data=xReg, family="binomial")		
 #      if(exists("glm.bin"))
 #        rm(glm.bin)
 #      try(glm.bin <- glmrob(y ~ . , data=xReg, family="binomial"),silent=TRUE)
@@ -782,7 +857,7 @@ useB <- function(xReg,  ndata, wy,factors,step,robust){
 #        glm.bin <- glm(y ~ . , data=xReg, family="binomial")
     
   }
-#	op <- options() # Alles auskommentiert, weil VGAM draußen!!!
+#	op <- options() # Alles auskommentiert, weil VGAM drau��en!!!
 #	options(show.error.messages=FALSE)
 #	try(detach(package:VGAM))
 #	options(op)
@@ -794,3 +869,4 @@ useB <- function(xReg,  ndata, wy,factors,step,robust){
 #    library(VGAM, warn.conflicts = FALSE, verbose=FALSE)
   return(imp)
 }
+

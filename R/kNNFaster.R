@@ -40,8 +40,8 @@
 #' of a numerical variable
 #' @param catFun function for aggregating the k Nearest Neighbours in the case
 #' of a categorical variable
-#' @param makeNA vector of values, that should be converted to NA
-#' @param NAcond a condition for imputing a NA
+#' @param makeNA list of length equal to the number of variables, with values, that should be converted to NA for each variable
+#' @param NAcond list of length equal to the number of variables, with a condition for imputing a NA
 #' @param impNA TRUE/FALSE whether NA should be imputed
 #' @param donorcond condition for the donors e.g. ">5"
 #' @param trace TRUE/FALSE if additional information about the imputation
@@ -57,7 +57,7 @@
 #' semi-continuous variables specifying the point of the semi-continuous
 #' distribution with non-zero probability
 #' @return the imputed data set.
-#' @author Alexander Kowarik
+#' @author Alexander Kowarik, Statistik Austria
 #' @keywords manip
 #' @examples
 #' 
@@ -65,6 +65,10 @@
 #' kNN(sleep)
 #' 
 #' @export kNN
+#' @export sampleCat
+#' @export maxCat
+#' @export gowerD
+#' @export which.minN
 #' @S3method kNN data.frame
 #' @S3method kNN survey.design
 #' @S3method kNN default
@@ -145,6 +149,12 @@ kNN_work <-
   startTime <- Sys.time()
   nvar <- length(variable)
   ndat <- nrow(data)
+  for(v in variable){
+    if(all(is.na(data[,v]))){
+      warning(paste("All observations of",v,"are missing, therefore the variable will not be imputed!\n"))
+      variable <- variable[variable!=v]  
+    }
+  }
   if(!is.data.frame(data)&&!is.matrix(data))
     stop("supplied data should be a dataframe or matrix")
   
@@ -167,15 +177,27 @@ kNN_work <-
   }else{
     indexNA2s <- is.na(data)
   }
-  if(sum(indexNA2s)<=0)
-    stop("Nothing to impute, because no NA are present (also after using makeNA)")
+  if(sum(indexNA2s)<=0){
+    warning("Nothing to impute, because no NA are present (also after using makeNA)")
+    invisible(data)
+  }
   if(imp_var){
     imp_vars <- paste(variable,"_",imp_suffix,sep="")
-    data[,imp_vars] <- FALSE
-    for(i in 1:length(variable)){
-      data[indexNA2s[,variable[i]],imp_vars[i]] <- TRUE
-        if(!any(indexNA2s[,variable[i]]))
-          data<-data[,-which(names(data)==paste(variable[i],"_",imp_suffix,sep=""))]
+    index_imp_vars <- which(!imp_vars%in%colnames(data))
+    index_imp_vars2 <- which(imp_vars%in%colnames(data))
+    if(length(index_imp_vars)>0){
+      data[,imp_vars[index_imp_vars]] <- FALSE
+      for(i in index_imp_vars){
+        data[indexNA2s[,variable[i]],imp_vars[i]] <- TRUE
+          #if(!any(indexNA2s[,variable[i]]))
+            #data<-data[,-which(names(data)==paste(variable[i],"_",imp_suffix,sep=""))]
+      }
+    }
+    if(length(index_imp_vars2)>0){
+      warning(paste("The following TRUE/FALSE imputation status variables will be updated:",
+              paste(imp_vars[index_imp_vars2],collapse=" , ")))
+      for(i in index_imp_vars2)
+        data[,imp_vars[i]] <- as.logical(data[,imp_vars[i]])
     }
   }
   orders <- vector()
@@ -186,12 +208,12 @@ kNN_work <-
   levOrders <- vector()
   if(length(orders)>0){
     for(i in 1:length(orders)){
-      levOrders[i] <- levels(data[,orders[i]])[length(levels(data[,orders[i]]))]
+      levOrders[i] <- length(levels(data[,orders[i]]))
     }
   }
   factors <- vector()
   for(i in 1:ncol(data)){
-    factors <- c(factors,is.factor(data[,i]))
+    factors <- c(factors,is.factor(data[,i])|is.character(data[,i]))
   }
   factors <- colnames(data)[factors]
   factors <- factors[!factors%in%orders]
@@ -235,8 +257,26 @@ kNN_work <-
       weights <- c(weights,min(weights)/(sum(weights)+1))
     }
   }
+  dist_single <- function(don_dist_var,imp_dist_var,numericalX,factorsX,ordersX,mixedX,levOrdersX,don_index,imp_index,weightsx,k,mixed.constant){
+    #gd <- distance(don_dist_var,imp_dist_var,weights=weightsx)
+    if(is.null(mixed.constant))
+      mixed.constant <- rep(0,length(mixedX))
+    gd <- gowerD(don_dist_var,imp_dist_var,weights=weightsx,numericalX,factorsX,ordersX,mixedX,levOrdersX,mixed.constant=mixed.constant);
+    rownames(gd) <- don_index
+    colnames(gd) <- imp_index
+    which.minNk <- function(x)1
+    cmd <- paste("which.minNk <- function(x)which.minN(x,",k,")",sep="")
+    eval(parse(text=cmd))
+    mindi <- apply(gd,2,which.minNk)
+    erg <- as.matrix(mindi)
+    if(k==1){
+      erg <- t(erg)
+    }
+    erg
+  }
   for(j in 1:nvar){
-    if(any(is.na(data[,variable[j]]))){
+    
+    if(any(indexNA2s[,variable[j]])){
       if(is.list(dist_var)){
         if(!is.list(weights))
           stop("if dist_var is a list weights must be a list")
@@ -259,23 +299,6 @@ kNN_work <-
       TF_imp <- indexNA2s[,variable[j]]
       imp_dist_var <- data[TF_imp,dist_varx,drop=FALSE]#TODO:for list of dist_var
       imp_index <- INDEX[TF_imp]
-      dist_single <- function(don_dist_var,imp_dist_var,numericalX,factorsX,ordersX,mixedX,levOrdersX,don_index,imp_index,weightsx,k,mixed.constant){
-        #gd <- distance(don_dist_var,imp_dist_var,weights=weightsx)
-        if(is.null(mixed.constant))
-          mixed.constant <- rep(0,length(mixedX))
-        gd <- gowerD(don_dist_var,imp_dist_var,weights=weightsx,numericalX,factorsX,ordersX,mixedX,levOrdersX,mixed.constant=mixed.constant);
-        rownames(gd) <- don_index
-        colnames(gd) <- imp_index
-        which.minNk <- function(x)1
-        cmd <- paste("which.minNk <- function(x)which.minN(x,",k,")",sep="")
-        eval(parse(text=cmd))
-        mindi <- apply(gd,2,which.minNk)
-        erg <- as.matrix(mindi)
-        if(k==1){
-          erg <- t(erg)
-        }
-        erg
-      }
       numericalX <-numerical[numerical%in%dist_varx]
       factorsX <-factors[factors%in%dist_varx]
       ordersX <-orders[orders%in%dist_varx]
@@ -296,7 +319,11 @@ kNN_work <-
         data[indexNA2s[,variable[j]],variable[j]] <- round(apply(kNNs,2,numFun))
       }else
         data[indexNA2s[,variable[j]],variable[j]] <- apply(kNNs,2,numFun)
+    }else{
+      if(trace)
+        cat("0 items of","variable:",variable[j]," imputed\n")
     }
+    
   }
   print(difftime(startTime,Sys.time()))  
   if(addRandom)
