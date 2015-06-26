@@ -548,8 +548,10 @@ irmi.default <- function(x, eps=5, maxit=100, mixed=NULL,mixed.constant=NULL, co
 #	  cat("nachher\n")
     }
   }
-  cat("Imputation performed on the following data set:\n")
-  print(missingSummary)
+  if(trace){
+    cat("Imputation performed on the following data set:\n")
+    print(missingSummary)
+  }
   invisible(x)
   
 }
@@ -748,11 +750,19 @@ useLM <- function(xReg,  ndata, wy, mixedTF,mixedConstant, factors, step, robust
       consistencyFactor <- sqrt((nrow(ndata[imp==1,,drop=FALSE])/n + 1))#*n/(n+1)
       nout <- nrow(ndata[imp==1,,drop=FALSE])
       p.glm.num <- predict(glm.num, newdata=ndata[imp==1,,drop=FALSE],se.fit=TRUE)
+      if(is.nan(p.glm.num$residual.scale)){
+        warning("The residual scale could not be computed, probably due to a rank deficient model. It is set to 1\n")
+        p.glm.num$residual.scale <- 1
+      }
       imp2 <- p.glm.num$fit+noise.factor*rnorm(length(p.glm.num$fit),0,p.glm.num$residual.scale*consistencyFactor)
     } else{
       nout <- nrow(ndata[imp==1,,drop=FALSE])
       consistencyFactor <- sqrt((nrow(ndata[imp==1,,drop=FALSE])/n + 1))#*(n)/(n+1))
       p.glm.num <- predict(glm.num, newdata=ndata[imp==1,,drop=FALSE])
+      if(is.nan(glm.num$s)){
+        warning("The residual scale could not be computed, probably due to a rank deficient model. It is set to 1\n")
+        glm.num$s <- 1
+      }
       imp2 <- p.glm.num + noise.factor*rnorm(length(p.glm.num),0,glm.num$s*consistencyFactor)
     }
   } else
@@ -857,7 +867,7 @@ useB <- function(xReg,  ndata, wy,factors,step,robust,form){
 #        glm.bin <- glm(y ~ . , data=xReg, family="binomial")
     
   }
-#	op <- options() # Alles auskommentiert, weil VGAM drau��en!!!
+#	op <- options() # Alles auskommentiert, weil VGAM draussen
 #	options(show.error.messages=FALSE)
 #	try(detach(package:VGAM))
 #	options(op)
