@@ -295,7 +295,7 @@ hotdeck_work <- function(x , variable=NULL, ord_var=NULL,domain_var=NULL,
       if(length(impPart)>0){
         if(imp_varX){
           impvarname <- paste(v,"_",imp_suffixX,sep="")
-          xx[impPart,impvarname:=TRUE,with=FALSE]
+          xx[UniqueIdForImputation%in%impPart,impvarname:=TRUE,with=FALSE]
         }
         impDon <- impPart-1
         impDon[impDon<1] <- impPart[impDon<1]+1
@@ -337,9 +337,22 @@ hotdeck_work <- function(x , variable=NULL, ord_var=NULL,domain_var=NULL,
       VariableSorting <- c(VariableSorting,impvarname)
     }
   }
+  # If no ord_var is defined, a random ordered will be used
+  if(is.null(ord_var)){
+    RandomVariableForImputationWithHotdeck <- NULL # Init for CRAN check
+    x[,RandomVariableForImputationWithHotdeck:=runif(nrow(x))]
+    ord_var <- "RandomVariableForImputationWithHotdeck"
+  }
   setkeyv(x,ord_var)
+  # if no domain_var is defined, the imputeHD function is automatically called on the
+  # whole data set
   x <- x[,imputeHD(.SD,variableX=variable,varTypeX=varType,
-          imp_varX=imp_var,imp_suffixX=imp_suffix,impNAX=impNA,makeNAX=makeNA), by = domain_var]
+    imp_varX=imp_var,imp_suffixX=imp_suffix,impNAX=impNA,makeNAX=makeNA), by = domain_var]
+  if(ord_var=="RandomVariableForImputationWithHotdeck"){
+    x[,RandomVariableForImputationWithHotdeck:=NULL]
+    ord_var <- NULL
+  }
+  
   setkey(x,OriginalSortingVariable)
   x[,OriginalSortingVariable:=NULL]
   if(all(classx!="data.table"))
