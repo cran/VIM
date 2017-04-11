@@ -103,7 +103,7 @@ hotdeck_work <- function(x , variable=NULL, ord_var=NULL,domain_var=NULL,
   }
   if(!is.null(makeNA)){
     if(!is.list(makeNA)||!length(makeNA)==length(variable))
-      stop("makeNA is not defined correctly")
+      stop("makeNA is not defined correctly. \n It should be a list of length equal to the length of the argument 'variable'.")
   }
   classx <- class(x)
   VariableSorting <- colnames(x)
@@ -124,7 +124,10 @@ hotdeck_work <- function(x , variable=NULL, ord_var=NULL,domain_var=NULL,
     #imp_suffixX <<- imp_suffixX
     OriginalSortingVariable <- weirdandlongname <- UniqueIdForImputation <- NULL#empty init
     J <- function()NULL#empty init
-    xx$UniqueIdForImputation <- 1:nrow(xx) 
+    xx$UniqueIdForImputation <- 1:nrow(xx)
+    prevKey <- key(xx)
+    #xxb <- copy(xx)
+    #xx <- copy(xxb)
     for(v in variableX){
       
       if(!impNAX){
@@ -133,12 +136,18 @@ hotdeck_work <- function(x , variable=NULL, ord_var=NULL,domain_var=NULL,
           stop("If impNA=FALSE a list of values to be imputed must be provided.")
         ## NAs should not be imputed
         if(varTypeX[v]%in%c("numeric","integer")){
-          NAs <- xx[J(NA_real_),UniqueIdForImputation,nomatch=FALSE]#$UniqueIdForImputation
+          NAs <- xx[J(NA_real_),.I,nomatch=FALSE]# get the Index of the NAS
         }else{
-          NAs <- xx[J(NA_character_),UniqueIdForImputation,nomatch=FALSE]#$UniqueIdForImputation
+          NAs <- xx[J(NA_character_),.I,nomatch=FALSE]# get the Index of the NAS
         }
-        xxna <- xx[NAs]
-        xx <- xx[-NAs]
+        #NAs hold the index of observations with NAs in the current variable
+        if(length(NAs)>0){
+          xxna <- xx[NAs] # move observation to a temp data set
+          xx <- xx[-NAs]  # just keep the non NA obs
+        }else{#if no NA xx is unchanged and xxna is just an empty data.table
+          xxna <- data.table()
+        }
+        setkeyv(xx,prevKey)
         xx$UniqueIdForImputation <- 1:nrow(xx)
       }
       
@@ -150,20 +159,25 @@ hotdeck_work <- function(x , variable=NULL, ord_var=NULL,domain_var=NULL,
       }
       setkeyv(xx,v)
       if(varTypeX[v]%in%c("numeric","integer")){
+        setnames(xx,v,"VariableWhichIsCurrentlyImputed")
         impPart <- xx[J(NA_real_),UniqueIdForImputation,nomatch=FALSE]#$UniqueIdForImputation
+        setnames(xx,"VariableWhichIsCurrentlyImputed",v)
       }else{
+        setnames(xx,v,"VariableWhichIsCurrentlyImputed")
         impPart <- xx[J(NA_character_),UniqueIdForImputation,nomatch=FALSE]#$UniqueIdForImputation
+        setnames(xx,"VariableWhichIsCurrentlyImputed",v)
       }
       
       if(length(impPart)>0){
         if(imp_varX){
           impvarname <- paste(v,"_",imp_suffixX,sep="")
-          xx[UniqueIdForImputation%in%impPart,impvarname:=TRUE,with=FALSE]
+          xx[UniqueIdForImputation%in%impPart,c(impvarname):=TRUE]
         }
         impDon <- impPart-1
         impDon[impDon<1] <- impPart[impDon<1]+1
         setkey(xx,UniqueIdForImputation)
         Don <- data.frame(xx[impDon,v,with=FALSE])[,1]
+        
         TFindex <- is.na(Don)
         TF <- any(TFindex)
         if(TF){
@@ -207,7 +221,8 @@ hotdeck_work <- function(x , variable=NULL, ord_var=NULL,domain_var=NULL,
   # If no ord_var is defined, a random ordered will be used
   if(is.null(ord_var)){
     RandomVariableForImputationWithHotdeck <- NULL # Init for CRAN check
-    x[,RandomVariableForImputationWithHotdeck:=runif(nrow(x))]
+    nrowXforRunif <- nrow(x)
+    x[,RandomVariableForImputationWithHotdeck:=runif(nrowXforRunif)]
     ord_var <- "RandomVariableForImputationWithHotdeck"
   }
   setkeyv(x,ord_var)
@@ -223,7 +238,7 @@ hotdeck_work <- function(x , variable=NULL, ord_var=NULL,domain_var=NULL,
   setkey(x,OriginalSortingVariable)
   x[,OriginalSortingVariable:=NULL]
   if(all(classx!="data.table"))
-    return(data.frame(x)[,VariableSorting])
+    return(data.frame(x)[,VariableSorting,drop=FALSE])
   return(x[,VariableSorting,with=FALSE])
 }
 #require(data.table)
