@@ -39,6 +39,10 @@ the imputed data set.
 Implementation of the popular Sequential, Random (within a domain) hot-deck
 algorithm for imputation.
 }
+\note{
+If the sequential hotdeck does not lead to a suitable,
+a random donor in the group will be used.
+}
 \examples{
 
 data(sleep)
@@ -60,13 +64,12 @@ xImp <- hotdeck(x,ord_var = c("o1","o2","o3"),domain_var="d2")
 
 
 }
-\author{
-Alexander Kowarik
-}
 \references{
 A. Kowarik, M. Templ (2016) Imputation with
 R package VIM.  \emph{Journal of
 Statistical Software}, 74(7), 1-16.
 }
+\author{
+Alexander Kowarik
+}
 \keyword{manip}
-

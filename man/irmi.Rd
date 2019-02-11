@@ -8,7 +8,8 @@ irmi(x, eps = 5, maxit = 100, mixed = NULL, mixed.constant = NULL,
   count = NULL, step = FALSE, robust = FALSE, takeAll = TRUE,
   noise = TRUE, noise.factor = 1, force = FALSE, robMethod = "MM",
   force.mixed = TRUE, mi = 1, addMixedFactors = FALSE, trace = FALSE,
-  init.method = "kNN", modelFormulas = NULL, multinom.method = "multinom")
+  init.method = "kNN", modelFormulas = NULL, multinom.method = "multinom",
+  imp_var = TRUE, imp_suffix = "imp")
 }
 \arguments{
 \item{x}{data.frame or matrix}
@@ -65,6 +66,12 @@ regression models}
 
 \item{multinom.method}{Method for estimating the multinomial models
 (current default and only available method is multinom)}
+
+\item{imp_var}{TRUE/FALSE if a TRUE/FALSE variables for each imputed
+variable should be created show the imputation status}
+
+\item{imp_suffix}{suffix for the TRUE/FALSE variables showing the imputation
+status}
 }
 \value{
 the imputed data set.
@@ -78,8 +85,7 @@ The method works sequentially and iterative. The method can deal with a
 mixture of continuous, semi-continuous, ordinal and nominal variables
 including outliers.
 
-A full description of the method will be uploaded soon in form of a package
-vignette.
+A full description of the method can be found in the mentioned reference.
 }
 \examples{
 
@@ -111,9 +117,6 @@ td$c1 <- as.ordered(td$c1)
 irmi(td)
 
 }
-\author{
-Matthias Templ, Alexander Kowarik
-}
 \references{
 M. Templ, A. Kowarik, P. Filzmoser (2011) Iterative stepwise
 regression imputation using standard and robust methods.  \emph{Journal of
@@ -126,5 +129,7 @@ Statistical Software}, 74(7), 1-16.
 \seealso{
 \code{\link[mi]{mi}}
 }
+\author{
+Matthias Templ, Alexander Kowarik
+}
 \keyword{manip}
-

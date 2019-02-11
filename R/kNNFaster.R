@@ -25,16 +25,17 @@
 #' occurrence of the level in the NNs. The function maxCat chooses the level
 #' with the most occurrences and random if the maximum is not unique. The
 #' function gowerD is used by kNN to compute the distances for numerical,
-#' factor ordered and semi-continous variables. The function which.minN is used
-#' by kNN.
+#' factor ordered and semi-continous variables. 
 #' 
-#' @aliases kNN sampleCat maxCat gowerD which.minN
+#' @aliases kNN sampleCat maxCat gowerD
 #' @param data data.frame or matrix
 #' @param variable variables where missing values should be imputed
 #' @param metric metric to be used for calculating the distances between
 #' @param k number of Nearest Neighbours used
 #' @param dist_var names or variables to be used for distance calculation
-#' @param weights weights for the variables for distance calculation
+#' @param weights weights for the variables for distance calculation.
+#' If \code{weights = "auto"} weights will be selected based on variable importance from random forest regression, using function \code{\link[ranger]{ranger}}.
+#' Weights are calculated for each variable seperately.
 #' @param numFun function for aggregating the k Nearest Neighbours in the case
 #' of a numerical variable
 #' @param catFun function for aggregating the k Nearest Neighbours in the case
@@ -42,13 +43,15 @@
 #' @param makeNA list of length equal to the number of variables, with values, that should be converted to NA for each variable
 #' @param NAcond list of length equal to the number of variables, with a condition for imputing a NA
 #' @param impNA TRUE/FALSE whether NA should be imputed
-#' @param donorcond condition for the donors e.g. ">5"
+#' @param donorcond condition for the donors e.g. list(">5"), must be NULL or a list of same length as variable
 #' @param trace TRUE/FALSE if additional information about the imputation
 #' process should be printed
 #' @param imp_var TRUE/FALSE if a TRUE/FALSE variables for each imputed
 #' variable should be created show the imputation status
 #' @param imp_suffix suffix for the TRUE/FALSE variables showing the imputation
 #' status
+#' @param addRF TRUE/FALSE each variable will be modelled using random forest regression (\code{\link[ranger]{ranger}}) and used as additional distance variable.
+#' @param onlyRF TRUE/FALSE if TRUE only additional distance variables created from random forest regression will be used as distance variables.
 #' @param addRandom TRUE/FALSE if an additional random variable should be added
 #' for distance calculation
 #' @param mixed names of mixed variables
@@ -76,40 +79,39 @@
 #' @export sampleCat
 #' @export maxCat
 #' @export gowerD
-#' @export which.minN
 #' @S3method kNN data.frame
 #' @S3method kNN survey.design
 #' @S3method kNN default
 kNN <- function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
                 numFun = median, catFun=maxCat,
                 makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
-                imp_var=TRUE,imp_suffix="imp",addRandom=FALSE,useImputedDist=TRUE,weightDist=FALSE) {
+                imp_var=TRUE,imp_suffix="imp", addRF=FALSE, onlyRF=FALSE,addRandom=FALSE,useImputedDist=TRUE,weightDist=FALSE) {
   UseMethod("kNN", data)
 }
 kNN.data.table <- function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
     numFun = median, catFun=maxCat,
     makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
-    imp_var=TRUE,imp_suffix="imp",addRandom=FALSE,useImputedDist=TRUE,weightDist=FALSE) {
+    imp_var=TRUE,imp_suffix="imp", addRF=FALSE, onlyRF=FALSE, addRandom=FALSE,useImputedDist=TRUE,weightDist=FALSE) {
   kNN_work(copy(data), variable, metric, k, dist_var,weights, numFun, catFun,
       makeNA, NAcond, impNA, donorcond, mixed, mixed.constant, trace,
-      imp_var, imp_suffix, addRandom,useImputedDist,weightDist)
+      imp_var, imp_suffix, addRF, onlyRF, addRandom,useImputedDist,weightDist)
 }
 kNN.data.frame <- function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
                            numFun = median, catFun=maxCat,
                            makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
-                           imp_var=TRUE,imp_suffix="imp",addRandom=FALSE,useImputedDist=TRUE,weightDist=FALSE) {
+                           imp_var=TRUE,imp_suffix="imp", addRF=FALSE, onlyRF=FALSE, addRandom=FALSE,useImputedDist=TRUE,weightDist=FALSE) {
   as.data.frame(kNN_work(as.data.table(data), variable, metric, k, dist_var,weights, numFun, catFun,
            makeNA, NAcond, impNA, donorcond, mixed, mixed.constant, trace,
-           imp_var, imp_suffix, addRandom,useImputedDist,weightDist))
+           imp_var, imp_suffix, addRF, onlyRF, addRandom,useImputedDist,weightDist))
 }
 
 kNN.survey.design <- function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
                               numFun = median, catFun=maxCat,
                               makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
-                              imp_var=TRUE,imp_suffix="imp",addRandom=FALSE,useImputedDist=TRUE,weightDist=FALSE) {
+                              imp_var=TRUE,imp_suffix="imp", addRF=FALSE, onlyRF=FALSE, addRandom=FALSE,useImputedDist=TRUE,weightDist=FALSE) {
   data$variables <- kNN_work(data$variables, variable, metric, k, dist_var,weights, numFun, catFun,
            makeNA, NAcond, impNA, donorcond, mixed, mixed.constant, trace,
-           imp_var, imp_suffix, addRandom,useImputedDist,weightDist)
+           imp_var, imp_suffix, addRF, onlyRF,addRandom,useImputedDist,weightDist)
   data$call <- sys.call(-1)
   data
 }
@@ -117,12 +119,18 @@ kNN.survey.design <- function(data, variable=colnames(data), metric=NULL, k=5, d
 kNN.default <- function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
                         numFun = median, catFun=maxCat,
                         makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
-                        imp_var=TRUE,imp_suffix="imp",addRandom=FALSE,useImputedDist=TRUE,weightDist=FALSE) {
+                        imp_var=TRUE,imp_suffix="imp", addRF=FALSE, onlyRF=FALSE, addRandom=FALSE,useImputedDist=TRUE,weightDist=FALSE) {
   kNN_work(as.data.table(data), variable, metric, k, dist_var,weights, numFun, catFun,
            makeNA, NAcond, impNA, donorcond, mixed, mixed.constant, trace,
-           imp_var, imp_suffix, addRandom,useImputedDist,weightDist)
+           imp_var, imp_suffix, addRF, onlyRF, addRandom,useImputedDist,weightDist)
 }
-
+lengthL <- function(x){
+  if(is.list(x)){
+    return(sapply(x,length))
+  }else{
+    return(length(x))
+  }
+}
 sampleCat <- function(x,weights = NULL){
   #sample with probabilites corresponding to there number in the NNs
   if(!is.factor(x))
@@ -141,43 +149,11 @@ maxCat <- function(x,weights = NULL){
     s <- sample(s)
   names(s)[which.max(s)]
 }
-which.minN <- function(x,n){
-  n <- min(n,length(x))
-  out <- vector()
-  for(i in 1:n){
-    out[i] <- names(x)[which.min(x)]
-    x[which.min(x)] <- Inf
-  }
-  as.numeric(out)
-}
-minN <- function(x,n){
-  n <- min(n,length(x))
-  out <- vector()
-  for(i in 1:n){
-    out[i] <- min(x)
-    x[which.min(x)] <- Inf
-  }
-  as.numeric(out)
-}
-whichminN <- function(x,n,values=FALSE){
-  if(!values){
-    out <- .Call( "whichminN", x,as.integer(min(c(n,length(x)))),PACKAGE="VIM")
-    if(!is.null(names(x))){
-      out <- names(x)[out]
-    }
-  }else{
-    out <- .Call( "whichminN2", x,as.integer(min(c(n,length(x)))),PACKAGE="VIM")
-    if(!is.null(names(x))){
-      out$which <- names(x)[out$which]
-    }
-  }
-  return(out)
-}
 kNN_work <-
     function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
         numFun = median, catFun=maxCat,
         makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
-        imp_var=TRUE,imp_suffix="imp",addRandom=FALSE,useImputedDist=TRUE,weightDist=FALSE){
+        imp_var=TRUE,imp_suffix="imp",addRF=FALSE, onlyRF=FALSE ,addRandom=FALSE,useImputedDist=TRUE,weightDist=FALSE){
   #basic checks
   if(!is.null(mixed.constant)){
     if(length(mixed.constant)!=length(mixed))
@@ -186,15 +162,13 @@ kNN_work <-
   startTime <- Sys.time()
   nvar <- length(variable)
   ndat <- nrow(data)
-  for(v in variable){
-    if(data[,sapply(.SD,function(x)all(is.na(x))),.SDcols=v]){
-      warning(paste("All observations of",v,"are missing, therefore the variable will not be imputed!\n"))
-      variable <- variable[variable!=v]  
-    }
-  }
-  
   #impNA==FALSE -> NAs should remain NAs (Routing NAs!?)
   indexNAs <- is.na(data)
+  if(!is.null(donorcond)){
+    if(length(donorcond)!=nvar){
+      stop("The list 'donorcond' must have the same length as the 'variable' vector")
+    }
+  }
   if(!is.null(makeNA)){
     if(length(makeNA)!=nvar)
       stop("The vector 'variable' must have the same length as the 'makeNA' list")
@@ -233,6 +207,16 @@ kNN_work <-
         data[,imp_vars[i]:=as.logical(data[,imp_vars[i]])]#,with=FALSE]
     }
   }
+  for(v in variable){
+    if(data[,sapply(.SD,function(x)all(is.na(x))),.SDcols=v]){
+      warning(paste("All observations of",v,"are missing, therefore the variable will not be imputed!\n"))
+      variable <- variable[variable!=v]  
+    }
+  }
+  if(length(variable)==0){
+    warning(paste("Nothing is imputed, because all variables to be imputed only contains missings."))
+    return(data)
+  }
   orders <- data[,sapply(.SD,is.ordered)]
   orders <- colnames(data)[orders]
   levOrders <- vector()
@@ -247,12 +231,12 @@ kNN_work <-
   numerical <- colnames(data)[numerical]
   numerical <- numerical[!numerical%in%mixed]
   if(trace){
-    cat("Detected as categorical variable:\n")
-    print(factors)
-    cat("Detected as ordinal variable:\n")
-    print(orders)
-    cat("Detected as numerical variable:\n")
-    print(numerical)  
+    message("Detected as categorical variable:\n")
+    message(paste(factors,collapse=","))
+    message("Detected as ordinal variable:\n")
+    message(paste(orders,collapse=","))
+    message("Detected as numerical variable:\n")
+    message(paste(numerical,collapse=","))
   }
 
   ###Make an index for selecting donors
@@ -262,9 +246,121 @@ kNN_work <-
   ##   metric <- c("euclidean", "manhattan", "gower")
   ## else if(!metric%in%c("euclidean", "manhattan", "gower"))
   ##   stop("metric is unknown")
+  
+  # add features using random forest (ranger)
+  if(addRF){
+
+    features_added <- c()
+    dist_var_new <- list()
+    weights_new <- list()
+    # create data set without missings for regressors
+    # seems to be most efficient way
+    # can still be improved...?
+    dataRF <- suppressWarnings(kNN(data[,unique(c(unlist(dist_var)
+                                                  ,variable)),with=FALSE],imp_var = FALSE))
+    
+    for(i in 1:nvar){
+      
+      if(any(indexNA2s[,variable[i]])){
+        if(is.list(dist_var)){
+          dist_var_cur <- dist_var[[i]]
+        }else{
+          dist_var_cur <- dist_var
+        }
+        regressors <- dist_var_cur[dist_var_cur!=variable[i]]
+        index.miss <- data[is.na(get(variable[i])),which=TRUE]
+
+        data.mod <- dataRF[-c(index.miss),unique(c(dist_var_cur,variable[i])),with=FALSE]
+        
+        if(nrow(data.mod)==0){
+          warning("cannot use random forest for ",variable[i],"\n too many missing values in the data")
+          next;
+        }
+        ranger.formula <- as.formula(paste(variable[i],paste(regressors,collapse = "+"),sep="~"))
+        
+        ranger.mod <- ranger(ranger.formula,data=data.mod)
+        
+        new_feature <- c(paste0(variable[i],"randomForestFeature"))
+        data[,c(new_feature):=predict(ranger.mod,data=dataRF)$predictions]
+
+        features_added <- c(features_added,new_feature)
+        
+        if(variable[i]%in%mixed){
+          mixed <- c(mixed,new_feature)
+        }else if(variable[i]%in%numerical){
+          numerical <- c(numerical,new_feature)
+        }else if(variable[i]%in%orders){
+          orders <- c(orders,new_feature)
+        }else if(variable[i]%in%factors){
+          factors <- c(factors,new_feature)
+        }
+        
+        if(onlyRF){
+          dist_var_new[[i]] <- c(new_feature)
+        }else{
+          dist_var_new[[i]] <- c(dist_var_cur,new_feature)
+          if(!is.null(weights)&&weights[1]!="auto"){
+            if(is.list(weights)){
+              weights_new[[i]] <- c(weights[[i]],median(weights[[i]]))
+            }else{
+              weights_new[[i]] <- c(weights,median(weights))
+            }
+            
+          }
+        }
+ 
+      }
+    }
+    rm(dataRF)
+    # create sets for distance variables
+    dist_var <- dist_var_new
+    if(!is.null(weights)&&weights[1]!="auto"){
+      weights <- weights_new
+    }
+  }else{
+    if(onlyRF){
+      onlyRF <- FALSE
+      warning("The onlyRF is automatically set to FALSE, because addRF=FALSE.")
+    }
+    features_added <- NULL
+  }
+  # set weights vector
   if(is.null(weights)){
-    weights <- rep(1,length(dist_var))
-  }else if(length(weights)!=length(dist_var)){
+    if(is.list(dist_var)){
+      weights <- lapply(dist_var,function(z){rep(1,length(z))})
+    }else{
+      weights <- rep(1,length(dist_var))
+    }
+
+  }else if(weights[1]=="auto"){
+    # use random forest and importance values for automatic weighting
+    # setup dist_var and weights as lists
+    # for each model different weights
+    weights_new <- list()
+    dist_var_new <- list()
+
+    for(i in 1:nvar){
+      if(any(indexNA2s[,variable[i]])){
+        
+        if(is.list(dist_var)){
+          regressors <- dist_var[[i]][dist_var!=variable[i]]
+          data.mod <- na.omit(subset(data,select=unique(c(variable[i],dist_var[[i]]))))
+        }else{
+          regressors <- dist_var[dist_var!=variable[i]]
+          data.mod <- na.omit(subset(data,select=unique(c(variable[i],dist_var))))
+        }
+        
+        ranger.formula <- as.formula(paste(variable[i],paste(regressors,collapse = "+"),sep="~"))
+        ranger.mod <- ranger(ranger.formula,data=data.mod,importance="impurity")
+        dist_var_new[[i]] <- regressors
+        weights_new[[i]] <- importance(ranger.mod)
+        
+      }
+    }
+    weights <- weights_new
+    dist_var <- dist_var_new
+    rm(weights_new,dist_var_new)
+  }else if(any(lengthL(weights)!=lengthL(dist_var))){
     stop("length of weights must be equal the number of distance variables")
   }
   if(addRandom){
@@ -280,6 +376,7 @@ kNN_work <-
       weights <- c(weights,min(weights)/(sum(weights)+1))
     }
   }
+
   dist_single <- function(don_dist_var,imp_dist_var,numericalX,factorsX,ordersX,mixedX,levOrdersX,
       don_index,imp_index,weightsx,k,mixed.constant,provideMins=TRUE){
     #gd <- distance(don_dist_var,imp_dist_var,weights=weightsx)
@@ -353,7 +450,7 @@ kNN_work <-
           don_index,imp_index,weightsx,k,mixed.constant,provideMins=weightDist)
       getI <- function(x)data[x,variable[j],with=FALSE]
       if(trace)
-        cat(sum(indexNA2s[,variable[j]]),"items of","variable:",variable[j]," imputed\n")
+        message(sum(indexNA2s[,variable[j]]),"items of","variable:",variable[j]," imputed\n")
       #Fetching the actual values of the kNNs for the indices provided by dist_single
       getI <- function(x)data[x,variable[j],with=FALSE]
       kNNs <- do.call("cbind",apply(mindi[[1]],2,getI)) 
@@ -388,7 +485,7 @@ kNN_work <-
       
     }else{
       if(trace)
-        cat("0 items of","variable:",variable[j]," imputed\n")
+        message("0 items of","variable:",variable[j]," imputed\n")
     }
     
   }
@@ -398,6 +495,9 @@ kNN_work <-
   if(addRandom){
     RandomVariableForImputation <- NULL # for satisfying CRAN check
     data <- data[,RandomVariableForImputation:=NULL]
+  }
+  if(!is.null(features_added)){
+    data[,c(features_added):=NULL]
   }
   data
 }
