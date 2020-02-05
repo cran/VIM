@@ -75,8 +75,8 @@
 #' compatibility with older versions. However, due to extended functionality,
 #' some of the argument positions have changed.
 #' 
-#' The code is based on \code{\link[StatDA]{bubbleFIN}} from package
-#' \code{StatDA}.
+#' The code is based on (removed from CRAN) bubbleFIN from package
+#' StatDA.
 #' @author Andreas Alfons, Matthias Templ, Peter Filzmoser, Bernd Prantner
 #' @seealso \code{\link{bgmap}}, \code{\link{mapMiss}},
 #' \code{\link{colormapMiss}}
@@ -98,9 +98,6 @@
 #' growdotMiss(x_imp, coo, kola.background, delimiter = "_imp", border = "white")
 #' 
 #' @export growdotMiss
-#' @S3method growdotMiss data.frame
-#' @S3method growdotMiss survey.design
-#' @S3method growdotMiss default
 growdotMiss <- function(x, coords, map, pos=1, delimiter = NULL, selection = c("any","all"), 
                         log = FALSE, col = c("skyblue", "red", "skyblue4", "red4", "orange", "orange4"), 
                         border = par("bg"), alpha = NULL, scale = NULL, 
@@ -111,6 +108,9 @@ growdotMiss <- function(x, coords, map, pos=1, delimiter = NULL, selection = c("
                         interactive = TRUE, ...)  {
   UseMethod("growdotMiss", x)
 }
+
+#' @rdname growdotMiss
+#' @export
 
 growdotMiss.data.frame <- function(x, coords, map, pos=1, delimiter = NULL, selection = c("any","all"), 
                                    log = FALSE, col = c("skyblue", "red", "skyblue4", "red4", "orange", "orange4"), 
@@ -125,6 +125,9 @@ growdotMiss.data.frame <- function(x, coords, map, pos=1, delimiter = NULL, sele
                    ndigits, interactive,...)
 }
 
+#' @rdname growdotMiss
+#' @export
+
 growdotMiss.survey.design <- function(x, coords, map, pos=1, delimiter = NULL, selection = c("any","all"), 
                                       log = FALSE, col = c("skyblue", "red", "skyblue4", "red4", "orange", "orange4"), 
                                       border = par("bg"), alpha = NULL, scale = NULL, 
@@ -137,6 +140,9 @@ growdotMiss.survey.design <- function(x, coords, map, pos=1, delimiter = NULL, s
                    exp, col.map, legend, legtitle, cex.legtitle, cex.legtext, ncircles,
                    ndigits, interactive,...)
 }
+
+#' @rdname growdotMiss
+#' @export
 
 growdotMiss.default <- function(x, coords, map, pos=1, delimiter = NULL, selection = c("any","all"), 
                                 log = FALSE, col = c("skyblue", "red", "skyblue4", "red4", "orange", "orange4"), 

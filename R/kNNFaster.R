@@ -21,13 +21,8 @@
 #' k-Nearest Neighbour Imputation based on a variation of the Gower Distance
 #' for numerical, categorical, ordered and semi-continous variables.
 #' 
-#' The function sampleCat samples with probabilites corresponding to the
-#' occurrence of the level in the NNs. The function maxCat chooses the level
-#' with the most occurrences and random if the maximum is not unique. The
-#' function gowerD is used by kNN to compute the distances for numerical,
-#' factor ordered and semi-continous variables. 
 #' 
-#' @aliases kNN sampleCat maxCat gowerD
+#' @aliases kNN
 #' @param data data.frame or matrix
 #' @param variable variables where missing values should be imputed
 #' @param metric metric to be used for calculating the distances between
@@ -76,18 +71,16 @@
 #' kNN(sleep, numFun = weightedMean, weightDist=TRUE)
 #' 
 #' @export kNN
-#' @export sampleCat
-#' @export maxCat
-#' @export gowerD
-#' @S3method kNN data.frame
-#' @S3method kNN survey.design
-#' @S3method kNN default
 kNN <- function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
                 numFun = median, catFun=maxCat,
                 makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
                 imp_var=TRUE,imp_suffix="imp", addRF=FALSE, onlyRF=FALSE,addRandom=FALSE,useImputedDist=TRUE,weightDist=FALSE) {
   UseMethod("kNN", data)
 }
+
+#' @rdname kNN
+#' @export
+
 kNN.data.table <- function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
     numFun = median, catFun=maxCat,
     makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
@@ -96,6 +89,10 @@ kNN.data.table <- function(data, variable=colnames(data), metric=NULL, k=5, dist
       makeNA, NAcond, impNA, donorcond, mixed, mixed.constant, trace,
       imp_var, imp_suffix, addRF, onlyRF, addRandom,useImputedDist,weightDist)
 }
+
+#' @rdname kNN
+#' @export
+
 kNN.data.frame <- function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
                            numFun = median, catFun=maxCat,
                            makeNA=NULL,NAcond=NULL, impNA=TRUE, donorcond=NULL,mixed=vector(),mixed.constant=NULL,trace=FALSE,
@@ -104,6 +101,9 @@ kNN.data.frame <- function(data, variable=colnames(data), metric=NULL, k=5, dist
            makeNA, NAcond, impNA, donorcond, mixed, mixed.constant, trace,
            imp_var, imp_suffix, addRF, onlyRF, addRandom,useImputedDist,weightDist))
 }
+
+#' @rdname kNN
+#' @export
 
 kNN.survey.design <- function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
                               numFun = median, catFun=maxCat,
@@ -115,6 +115,9 @@ kNN.survey.design <- function(data, variable=colnames(data), metric=NULL, k=5, d
   data$call <- sys.call(-1)
   data
 }
+
+#' @rdname kNN
+#' @export
 
 kNN.default <- function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
                         numFun = median, catFun=maxCat,
@@ -131,23 +134,36 @@ lengthL <- function(x){
     return(length(x))
   }
 }
-sampleCat <- function(x,weights = NULL){
-  #sample with probabilites corresponding to there number in the NNs
-  if(!is.factor(x))
-    x <- as.factor(x)
-  s <- summary(x)
-  s <- s[s!=0]
-  sample(names(s),1,prob=s)
-}
-maxCat <- function(x,weights = NULL){
-  #choose cat with max prob, random if max is not unique
-  if(!is.factor(x))
-    x <- as.factor(x)
-  s <- summary(x)
-  s <- s[s!=0]
-  if(sum(s>0)>1)
-    s <- sample(s)
-  names(s)[which.max(s)]
+
+
+
+dist_single <- function(don_dist_var,imp_dist_var,numericalX,factorsX,ordersX,mixedX,levOrdersX,
+                        don_index,imp_index,weightsx,k,mixed.constant,provideMins=TRUE){
+  #gd <- distance(don_dist_var,imp_dist_var,weights=weightsx)
+  if(is.null(mixed.constant))
+    mixed.constant <- rep(0,length(mixedX))
+  
+  if(provideMins){
+    gd <- gowerD(don_dist_var,imp_dist_var,weights=weightsx,numericalX,
+                 factorsX,ordersX,mixedX,levOrdersX,mixed.constant=mixed.constant,returnIndex=TRUE,
+                 nMin=as.integer(k),returnMin=TRUE);
+    colnames(gd$mins) <- imp_index
+    erg2 <- as.matrix(gd$mins)
+  }else{
+    gd <- gowerD(don_dist_var,imp_dist_var,weights=weightsx,numericalX,
+                 factorsX,ordersX,mixedX,levOrdersX,mixed.constant=mixed.constant,returnIndex=TRUE,
+                 nMin=as.integer(k));
+    erg2 <- NA
+  }
+  colnames(gd$ind) <- imp_index
+  gd$ind[,] <- don_index[gd$ind]
+  erg <- as.matrix(gd$ind)
+  
+  if(k==1){
+    erg <- t(erg)
+    erg2 <- t(erg2)
+  }
+  list(erg,erg2)
 }
 kNN_work <-
     function(data, variable=colnames(data), metric=NULL, k=5, dist_var=colnames(data),weights=NULL,
@@ -375,34 +391,6 @@ kNN_work <-
       dist_var <- c(dist_var,"RandomVariableForImputation")
       weights <- c(weights,min(weights)/(sum(weights)+1))
     }
-  }
-
-  dist_single <- function(don_dist_var,imp_dist_var,numericalX,factorsX,ordersX,mixedX,levOrdersX,
-      don_index,imp_index,weightsx,k,mixed.constant,provideMins=TRUE){
-    #gd <- distance(don_dist_var,imp_dist_var,weights=weightsx)
-    if(is.null(mixed.constant))
-      mixed.constant <- rep(0,length(mixedX))
-    if(provideMins){
-      gd <- gowerD(don_dist_var,imp_dist_var,weights=weightsx,numericalX,
-          factorsX,ordersX,mixedX,levOrdersX,mixed.constant=mixed.constant,returnIndex=TRUE,
-          nMin=as.integer(k),returnMin=TRUE);
-      colnames(gd$mins) <- imp_index
-      erg2 <- as.matrix(gd$mins)
-    }else{
-      gd <- gowerD(don_dist_var,imp_dist_var,weights=weightsx,numericalX,
-          factorsX,ordersX,mixedX,levOrdersX,mixed.constant=mixed.constant,returnIndex=TRUE,
-          nMin=as.integer(k));
-      erg2 <- NA
-    }
-    colnames(gd$ind) <- imp_index
-    gd$ind[,] <- don_index[gd$ind]
-    erg <- as.matrix(gd$ind)
-    
-    if(k==1){
-      erg <- t(erg)
-      erg2 <- t(erg2)
-    }
-    list(erg,erg2)
   }
   for(j in 1:nvar){
     

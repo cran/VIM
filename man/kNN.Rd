@@ -2,18 +2,136 @@
 % Please edit documentation in R/kNNFaster.R
 \name{kNN}
 \alias{kNN}
-\alias{sampleCat}
-\alias{maxCat}
-\alias{gowerD}
+\alias{kNN.data.table}
+\alias{kNN.data.frame}
+\alias{kNN.survey.design}
+\alias{kNN.default}
 \title{k-Nearest Neighbour Imputation}
 \usage{
-kNN(data, variable = colnames(data), metric = NULL, k = 5,
-  dist_var = colnames(data), weights = NULL, numFun = median,
-  catFun = maxCat, makeNA = NULL, NAcond = NULL, impNA = TRUE,
-  donorcond = NULL, mixed = vector(), mixed.constant = NULL,
-  trace = FALSE, imp_var = TRUE, imp_suffix = "imp", addRF = FALSE,
-  onlyRF = FALSE, addRandom = FALSE, useImputedDist = TRUE,
-  weightDist = FALSE)
+kNN(
+  data,
+  variable = colnames(data),
+  metric = NULL,
+  k = 5,
+  dist_var = colnames(data),
+  weights = NULL,
+  numFun = median,
+  catFun = maxCat,
+  makeNA = NULL,
+  NAcond = NULL,
+  impNA = TRUE,
+  donorcond = NULL,
+  mixed = vector(),
+  mixed.constant = NULL,
+  trace = FALSE,
+  imp_var = TRUE,
+  imp_suffix = "imp",
+  addRF = FALSE,
+  onlyRF = FALSE,
+  addRandom = FALSE,
+  useImputedDist = TRUE,
+  weightDist = FALSE
+)
+
+\method{kNN}{data.table}(
+  data,
+  variable = colnames(data),
+  metric = NULL,
+  k = 5,
+  dist_var = colnames(data),
+  weights = NULL,
+  numFun = median,
+  catFun = maxCat,
+  makeNA = NULL,
+  NAcond = NULL,
+  impNA = TRUE,
+  donorcond = NULL,
+  mixed = vector(),
+  mixed.constant = NULL,
+  trace = FALSE,
+  imp_var = TRUE,
+  imp_suffix = "imp",
+  addRF = FALSE,
+  onlyRF = FALSE,
+  addRandom = FALSE,
+  useImputedDist = TRUE,
+  weightDist = FALSE
+)
+
+\method{kNN}{data.frame}(
+  data,
+  variable = colnames(data),
+  metric = NULL,
+  k = 5,
+  dist_var = colnames(data),
+  weights = NULL,
+  numFun = median,
+  catFun = maxCat,
+  makeNA = NULL,
+  NAcond = NULL,
+  impNA = TRUE,
+  donorcond = NULL,
+  mixed = vector(),
+  mixed.constant = NULL,
+  trace = FALSE,
+  imp_var = TRUE,
+  imp_suffix = "imp",
+  addRF = FALSE,
+  onlyRF = FALSE,
+  addRandom = FALSE,
+  useImputedDist = TRUE,
+  weightDist = FALSE
+)
+
+\method{kNN}{survey.design}(
+  data,
+  variable = colnames(data),
+  metric = NULL,
+  k = 5,
+  dist_var = colnames(data),
+  weights = NULL,
+  numFun = median,
+  catFun = maxCat,
+  makeNA = NULL,
+  NAcond = NULL,
+  impNA = TRUE,
+  donorcond = NULL,
+  mixed = vector(),
+  mixed.constant = NULL,
+  trace = FALSE,
+  imp_var = TRUE,
+  imp_suffix = "imp",
+  addRF = FALSE,
+  onlyRF = FALSE,
+  addRandom = FALSE,
+  useImputedDist = TRUE,
+  weightDist = FALSE
+)
+
+\method{kNN}{default}(
+  data,
+  variable = colnames(data),
+  metric = NULL,
+  k = 5,
+  dist_var = colnames(data),
+  weights = NULL,
+  numFun = median,
+  catFun = maxCat,
+  makeNA = NULL,
+  NAcond = NULL,
+  impNA = TRUE,
+  donorcond = NULL,
+  mixed = vector(),
+  mixed.constant = NULL,
+  trace = FALSE,
+  imp_var = TRUE,
+  imp_suffix = "imp",
+  addRF = FALSE,
+  onlyRF = FALSE,
+  addRandom = FALSE,
+  useImputedDist = TRUE,
+  weightDist = FALSE
+)
 }
 \arguments{
 \item{data}{data.frame or matrix}
@@ -78,13 +196,6 @@ the imputed data set.
 \description{
 k-Nearest Neighbour Imputation based on a variation of the Gower Distance
 for numerical, categorical, ordered and semi-continous variables.
-}
-\details{
-The function sampleCat samples with probabilites corresponding to the
-occurrence of the level in the NNs. The function maxCat chooses the level
-with the most occurrences and random if the maximum is not unique. The
-function gowerD is used by kNN to compute the distances for numerical,
-factor ordered and semi-continous variables.
 }
 \examples{
 

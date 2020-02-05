@@ -47,6 +47,11 @@
 #' sleepI <- hotdeck(sleep)
 #' sleepI2 <- hotdeck(sleep,ord_var="BodyWgt",domain_var="Pred")
 #' 
+#' # Usage of donorcond in a simple example
+#' sleepI3 <- hotdeck(sleep,variable=c("NonD","Dream","Sleep","Span","Gest"),
+#' ord_var="BodyWgt",domain_var="Pred",
+#' donorcond = list(">4","<17",">1.5","%between%c(8,13)",">5"))
+#' 
 #' set.seed(132)
 #' nRows <- 1e3
 #' # Generate a data set with nRows rows and several variables
@@ -62,14 +67,14 @@
 #' 
 #' 
 #' @export hotdeck
-#' @S3method hotdeck data.frame
-#' @S3method hotdeck survey.design
-#' @S3method hotdeck default
 hotdeck <- function(data, variable=NULL, ord_var=NULL,domain_var=NULL,
     makeNA=NULL,NAcond=NULL,impNA=TRUE,donorcond=NULL,
     imp_var=TRUE,imp_suffix="imp") {
   UseMethod("hotdeck", data)
 }
+
+#' @rdname hotdeck
+#' @export
 
 hotdeck.data.frame <- function(data, variable=NULL, ord_var=NULL,domain_var=NULL,
     makeNA=NULL,NAcond=NULL,impNA=TRUE,donorcond=NULL,
@@ -77,6 +82,9 @@ hotdeck.data.frame <- function(data, variable=NULL, ord_var=NULL,domain_var=NULL
   hotdeck_work(data, variable, ord_var, domain_var, makeNA, NAcond, impNA, donorcond,
       imp_var, imp_suffix)
 }
+
+#' @rdname hotdeck
+#' @export
 
 hotdeck.survey.design <- function(data, variable=NULL, ord_var=NULL,domain_var=NULL,
     makeNA=NULL,NAcond=NULL,impNA=TRUE,donorcond=NULL,
@@ -86,6 +94,9 @@ hotdeck.survey.design <- function(data, variable=NULL, ord_var=NULL,domain_var=N
   data$call <- sys.call(-1)
   data
 }
+
+#' @rdname hotdeck
+#' @export
 
 hotdeck.default <- function(data, variable=NULL, ord_var=NULL,domain_var=NULL,
     makeNA=NULL,NAcond=NULL,impNA=TRUE,donorcond=NULL,

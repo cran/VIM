@@ -1,4 +1,5 @@
 library(VIM)
+context("kNN general")
 d <- data.frame(x=LETTERS[1:6],y=as.double(1:6),z=as.double(1:6),w=ordered(LETTERS[1:6]))
 d <- rbind(d,d)
 setna <- function(d,i,col=2){
@@ -33,6 +34,19 @@ test_that("kNN Tests for k==5 with mixed variable",{
   d <- setna(d,7:12,2)
   d <- setna(d,1:2,1)
   d <- setna(d,3:4,5)
+  d2 <- kNN(d,k=5,numFun = wm,weightDist = TRUE, catFun = sampleCat, mixed = "m",
+            addRandom = TRUE)
+  
+})
+
+
+test_that("kNN Tests for k==5 with mixed variable",{
+  d <- setna(d,7:12,2)
+  d <- setna(d,1:2,1)
+  d <- setna(d,3:4,5)
+  d <- cbind(d,d,d)
+  colnames(d)[6:10] <- paste0(colnames(d)[6:10],2)
+  colnames(d)[11:15] <- paste0(colnames(d)[6:10],3)
   d2 <- kNN(d,k=5,numFun = wm,weightDist = TRUE, catFun = sampleCat, mixed = "m",
             addRandom = TRUE)
   
@@ -88,6 +102,3 @@ test_that("kNN Tests - randomForest list",{
             addRF=TRUE,weights=list(c(1,2),c(1,2)))
   
 })
-
-
-

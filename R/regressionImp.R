@@ -40,19 +40,22 @@
 #' imp_testdata3 <- regressionImp(x1~x2,data=testdata$wna,robust=TRUE)
 #' 
 #' @export regressionImp
-#' @S3method regressionImp data.frame
-#' @S3method regressionImp survey.design
-#' @S3method regressionImp default
 regressionImp <- function(formula,data,family="AUTO", robust=FALSE,imp_var = TRUE,
     imp_suffix = "imp",mod_cat=FALSE) {
   UseMethod("regressionImp", data)
 }
+
+#' @rdname regressionImp
+#' @export
 
 regressionImp.data.frame <- function(formula,data,family="AUTO", robust=FALSE,imp_var = TRUE,
     imp_suffix = "imp",mod_cat=FALSE) {
   regressionImp_work(formula=formula, data=data,family=family, robust=robust,
       imp_var=imp_var,imp_suffix=imp_suffix,mod_cat=mod_cat)
 }
+
+#' @rdname regressionImp
+#' @export
 
 regressionImp.survey.design <- function(formula, data, family, robust,imp_var = TRUE,
     imp_suffix = "imp",mod_cat=FALSE) {
@@ -61,6 +64,9 @@ regressionImp.survey.design <- function(formula, data, family, robust,imp_var = 
   data$call <- sys.call(-1)
   data
 }
+
+#' @rdname regressionImp
+#' @export
 
 regressionImp.default <- function(formula, data, family="AUTO", robust=FALSE,imp_var = TRUE,
     imp_suffix = "imp",mod_cat=FALSE) {
@@ -85,7 +91,7 @@ regressionImp_work <- function(formula, family, robust, data,imp_var,imp_suffix,
       if(class(family)!="function"){
         if(family=="AUTO"){
           TFna <- TFna2&!is.na(data[,lhsV])
-          if("numeric"%in%class(data[,lhsV])){
+          if("numeric"%in%class(unlist(data[,lhsV]))){
             nLev <- 0
             if(robust){
               fn <- lmrob
@@ -93,7 +99,7 @@ regressionImp_work <- function(formula, family, robust, data,imp_var,imp_suffix,
               fn <- lm
             }
             mod <- fn(form,data=data[TFna,])
-          }else if("factor"%in%class(data[,lhsV])){
+          }else if("factor"%in%class(unlist(data[,lhsV]))){
             nLev <- length(levels(data[,lhsV]))
             if(nLev==2){
               fam <- binomial
