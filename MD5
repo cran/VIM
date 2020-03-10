@@ -1,15 +1,15 @@
-858c5387d3ae1aeec9b6b64aef20e412 *DESCRIPTION
-5f725f2acba44b3914d6c84a9afa0809 *NAMESPACE
+bd961364a1a8758da9fb367d7661ccc1 *DESCRIPTION
+e7d625cbf58d6c570a4a91a4ab2ff210 *NAMESPACE
 c8817da805057b5bcc2d4227e2619283 *NEWS
 e75ccf53126bb7ca75c13e472cee8c5c *R/RcppExports.R
-7ca63f71c7be6cecc98adcd4ea19903c *R/VIM-package.R
+baac702af50157baef885bacef360f9d *R/VIM-package.R
 bb147f362b012b3493a0e0cd2804c5f5 *R/aggr.R
 4e3571c7a7c32136f4de16ee35fb6051 *R/alphablend.R
 e9cd284b1a38014e0d7e3c3826db7721 *R/barMiss.R
 4f51443e6647be2f983a7f9242febfb7 *R/bgmap.R
 7a10bce9fe637ca2a1d7a81698241fcb *R/colSequence.R
 79e7a86d27d0b6d18e9362cbe732e854 *R/colormapMiss.R
-8d027be119aee2b8682b2e94a87c0162 *R/evaluation.R
+44ce656b0ad9bb6fc47a1bcec37a0d91 *R/evaluation.R
 c6de46824dd21d3ddb4186e649f966cc *R/gapMiss.R
 227eea9b9e87ef6e03ff753d5f0cd785 *R/gowerD.R
 614fb4fb58cbdbbcd63203909b24950f *R/growdotMiss.R
@@ -68,7 +68,7 @@ df36a9537b7de46396da289a85e67a3b *man/collisions.Rd
 8493750bf91c6858e6ec8e805d6317a2 *man/colormapMiss.Rd
 b2fb3823686a3513ec5d1f9d381da31b *man/countInf.Rd
 e4baf752d5208413d7bb8cd654a37354 *man/diabetes.Rd
-d2a4fb5247046b36c9af02ca2a189b65 *man/evaluation.Rd
+40e572104a298bf025026a59a8dd3615 *man/evaluation.Rd
 36874d0add1f781467ed0c725db53a2a *man/food.Rd
 fc47185503b2f7e22410ae78b8658809 *man/gapMiss.Rd
 1acd70234574de128d39f9180fdd6aca *man/gowerD.Rd
@@ -113,5 +113,5 @@ b065cb7fd81480e215d252bd291ca2a3 *src/RcppExports.cpp
 1498500ef4de71152d4a04994b173492 *tests/testthat/test_graphics.R
 b92b8dcb9a4d0c94ec05735eff2e0d4b *tests/testthat/test_hotdeck.R
 1371462e66650dcbede6baebcada2aea *tests/testthat/test_impNA.R
-81548dc5934c45e52615c51fc15892d8 *tests/testthat/test_kNN.R
-fb411718045775f11f1fb252e253ac65 *tests/testthat/test_kNN_exact.R
+ac66e65fe16d29848fec797daa527e94 *tests/testthat/test_kNN.R
+8093dd03d2cf4555cfe1e9b37bc89c09 *tests/testthat/test_kNN_exact.R

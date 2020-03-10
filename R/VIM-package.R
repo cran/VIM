@@ -20,6 +20,7 @@
 #' @importFrom graphics polygon rect strheight strwidth text title
 #' @importFrom utils capture.output flush.console head
 #' @importFrom ranger ranger importance
+#' @importFrom magrittr %>%
 #' @useDynLib VIM
 NULL
 

@@ -4,7 +4,8 @@ df <- data.frame(Class=c(rep("A",5),rep("B",5)),
                  X1=1L,X2=rep(c(2L,3L),each=5),
                  ClassNum=rep(c(1L,2L),each=5),
                  Row=1:10,Row2=1:10,
-                 ord=ordered(c(rep("A",5),rep("B",5))))
+                 ord=ordered(c(rep("A",5),rep("B",5))),
+                 stringsAsFactors = TRUE)
 test_that("kNN Tests - exact1",{
   df[3,3] <- NA
   df[8,3] <- NA
