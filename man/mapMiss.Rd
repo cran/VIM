@@ -2,57 +2,9 @@
 % Please edit documentation in R/mapMiss.R
 \name{mapMiss}
 \alias{mapMiss}
-\alias{mapMiss.data.frame}
-\alias{mapMiss.survey.design}
-\alias{mapMiss.default}
 \title{Map with information about missing/imputed values}
 \usage{
 mapMiss(
-  x,
-  coords,
-  map,
-  delimiter = NULL,
-  selection = c("any", "all"),
-  col = c("skyblue", "red", "orange"),
-  alpha = NULL,
-  pch = c(19, 15),
-  col.map = grey(0.5),
-  legend = TRUE,
-  interactive = TRUE,
-  ...
-)
-
-\method{mapMiss}{data.frame}(
-  x,
-  coords,
-  map,
-  delimiter = NULL,
-  selection = c("any", "all"),
-  col = c("skyblue", "red", "orange"),
-  alpha = NULL,
-  pch = c(19, 15),
-  col.map = grey(0.5),
-  legend = TRUE,
-  interactive = TRUE,
-  ...
-)
-
-\method{mapMiss}{survey.design}(
-  x,
-  coords,
-  map,
-  delimiter = NULL,
-  selection = c("any", "all"),
-  col = c("skyblue", "red", "orange"),
-  alpha = NULL,
-  pch = c(19, 15),
-  col.map = grey(0.5),
-  legend = TRUE,
-  interactive = TRUE,
-  ...
-)
-
-\method{mapMiss}{default}(
   x,
   coords,
   map,
@@ -73,11 +25,11 @@ mapMiss(
 \item{coords}{a \code{data.frame} or matrix with two columns giving the
 spatial coordinates of the observations.}
 
-\item{map}{a background map to be passed to \code{\link{bgmap}}.}
+\item{map}{a background map to be passed to \code{\link[=bgmap]{bgmap()}}.}
 
 \item{delimiter}{a character-vector to distinguish between variables and
 imputation-indices for imputed variables (therefore, \code{x} needs to have
-\code{\link{colnames}}). If given, it is used to determine the corresponding
+\code{\link[=colnames]{colnames()}}). If given, it is used to determine the corresponding
 imputation-index for any imputed variable (a logical-vector indicating which
 values of the variable have been imputed). If such imputation-indices are
 found, they are used for highlighting and the colors are adjusted according
@@ -108,7 +60,7 @@ supplied, it will be used for both.}
 observations can be displayed interactively (see \sQuote{Details}).}
 
 \item{\dots}{further graphical parameters to be passed to
-\code{\link{bgmap}} and \code{\link[graphics]{points}}.}
+\code{\link[=bgmap]{bgmap()}} and \code{\link[graphics:points]{graphics::points()}}.}
 }
 \description{
 Map of observed and missing/imputed values.
@@ -138,8 +90,8 @@ data using visualization tools.  \emph{Journal of Advances in Data Analysis
 and Classification}, Online first. DOI: 10.1007/s11634-011-0102-y.
 }
 \seealso{
-\code{\link{bgmap}}, \code{\link{bubbleMiss}},
-\code{\link{colormapMiss}}
+\code{\link[=bgmap]{bgmap()}}, \code{\link[=bubbleMiss]{bubbleMiss()}},
+\code{\link[=colormapMiss]{colormapMiss()}}
 }
 \author{
 Matthias Templ, Andreas Alfons, modifications by Bernd Prantner

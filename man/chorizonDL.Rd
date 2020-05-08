@@ -4,7 +4,8 @@
 \name{chorizonDL}
 \alias{chorizonDL}
 \title{C-horizon of the Kola data with missing values}
-\format{A data frame with 606 observations on the following 110 variables.
+\format{
+A data frame with 606 observations on the following 110 variables.
 \describe{ \item{*ID}{a numeric vector} \item{XCOO}{a
 numeric vector} \item{YCOO}{a numeric vector} \item{Ag}{a
 numeric vector} \item{Ag_INAA}{a numeric vector} \item{Al}{a
@@ -63,18 +64,19 @@ numeric vector} \item{K_XRF}{a numeric vector}
 \item{Mg_XRF}{a numeric vector} \item{Mn_XRF}{a numeric
 vector} \item{Na_XRF}{a numeric vector} \item{P_XRF}{a
 numeric vector} \item{Si_XRF}{a numeric vector}
-\item{Ti_XRF}{a numeric vector} }}
+\item{Ti_XRF}{a numeric vector} }
+}
 \source{
 Kola Project (1993-1998)
 }
 \description{
-This data set is the same as the \code{\link[mvoutlier]{chorizon}} data set
+This data set is the same as the \code{\link[mvoutlier:chorizon]{mvoutlier::chorizon()}} data set
 in package \code{mvoutlier}, except that values below the detection limit
 are coded as \code{NA}.
 }
 \note{
 For a more detailed description of this data set, see
-\code{\link[mvoutlier]{chorizon}} in package \code{mvoutlier}.
+\code{\link[mvoutlier:chorizon]{mvoutlier::chorizon()}} in package \code{mvoutlier}.
 }
 \examples{
 
@@ -88,6 +90,6 @@ Reimann, C., Filzmoser, P., Garrett, R.G. and Dutter, R. (2008)
 with R}. Wiley.
 }
 \seealso{
-\code{\link[mvoutlier]{chorizon}}
+\code{\link[mvoutlier:chorizon]{mvoutlier::chorizon()}}
 }
 \keyword{datasets}

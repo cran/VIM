@@ -19,6 +19,12 @@
 
 # ---------------------------------------
 
+check_data <- function(data) {
+  if (inherits(data, "survey.design"))
+    stop("support for survey.design objects was removed in VIM",
+         " 6.0.0. Use data.frame or data.table instead")
+}
+
 ## utilities for data
 getEscapeChars <- function() {
   c("", "_", "__", "-", " ", "/", "\\", ",")
@@ -94,8 +100,8 @@ isImp <- function(x, pos, delimiter, imp_var, selection = c("none","any","all"))
 #' 
 #' @aliases countInf countNA
 #' @param x a vector.
-#' @return  \code{countInf} returns the number of infinite values in \code{x}.
-#' \code{countNA} returns the number of missing values in \code{x}.
+#' @return  `countInf` returns the number of infinite values in `x`.
+#' `countNA` returns the number of missing values in `x`.
 #' @author Andreas Alfons
 #' @keywords utilities
 #' @examples
@@ -142,14 +148,6 @@ is.continuous <- function(x) is.numeric(x) && !is.integer(x)
 # ---------------------------------------
 
 ## utilities for plots
-
-# get plot annotation for variables
-getLabel <- function(v) {
-  sc <- switch(getVm("scaling"), none="", classical="scaled", 
-      MCD="robustly scaled", robust="robustly scaled")
-  if(nchar(sc)) paste(v, " (", sc, ")", sep="")
-  else v
-}
 
 # print out which variables are highlighted
 highlightInfo <- function(highlight, selection = c("any","all"), imputed = FALSE) {

@@ -2,87 +2,9 @@
 % Please edit documentation in R/irmi.R
 \name{irmi}
 \alias{irmi}
-\alias{irmi.data.frame}
-\alias{irmi.survey.design}
-\alias{irmi.default}
 \title{Iterative robust model-based imputation (IRMI)}
 \usage{
 irmi(
-  x,
-  eps = 5,
-  maxit = 100,
-  mixed = NULL,
-  mixed.constant = NULL,
-  count = NULL,
-  step = FALSE,
-  robust = FALSE,
-  takeAll = TRUE,
-  noise = TRUE,
-  noise.factor = 1,
-  force = FALSE,
-  robMethod = "MM",
-  force.mixed = TRUE,
-  mi = 1,
-  addMixedFactors = FALSE,
-  trace = FALSE,
-  init.method = "kNN",
-  modelFormulas = NULL,
-  multinom.method = "multinom",
-  imp_var = TRUE,
-  imp_suffix = "imp"
-)
-
-\method{irmi}{data.frame}(
-  x,
-  eps = 5,
-  maxit = 100,
-  mixed = NULL,
-  mixed.constant = NULL,
-  count = NULL,
-  step = FALSE,
-  robust = FALSE,
-  takeAll = TRUE,
-  noise = TRUE,
-  noise.factor = 1,
-  force = FALSE,
-  robMethod = "MM",
-  force.mixed = TRUE,
-  mi = 1,
-  addMixedFactors = FALSE,
-  trace = FALSE,
-  init.method = "kNN",
-  modelFormulas = NULL,
-  multinom.method = "multinom",
-  imp_var = TRUE,
-  imp_suffix = "imp"
-)
-
-\method{irmi}{survey.design}(
-  x,
-  eps = 5,
-  maxit = 100,
-  mixed = NULL,
-  mixed.constant = NULL,
-  count = NULL,
-  step = FALSE,
-  robust = FALSE,
-  takeAll = TRUE,
-  noise = TRUE,
-  noise.factor = 1,
-  force = FALSE,
-  robMethod = "MM",
-  force.mixed = TRUE,
-  mi = 1,
-  addMixedFactors = FALSE,
-  trace = FALSE,
-  init.method = "kNN",
-  modelFormulas = NULL,
-  multinom.method = "multinom",
-  imp_var = TRUE,
-  imp_suffix = "imp"
-)
-
-\method{irmi}{default}(
   x,
   eps = 5,
   maxit = 100,
@@ -147,7 +69,8 @@ case, possible by using different robust methods automatically.}
 
 \item{mi}{number of multiple imputations.}
 
-\item{addMixedFactors}{if TRUE add additional factor variable for each mixed variable as X variable in the regression}
+\item{addMixedFactors}{if TRUE add additional factor variable for each
+mixed variable as X variable in the regression}
 
 \item{trace}{Additional information about the iterations when trace equals
 TRUE.}
@@ -155,8 +78,9 @@ TRUE.}
 \item{init.method}{Method for initialization of missing values (kNN or
 median)}
 
-\item{modelFormulas}{a named list with the name of variables for the  rhs of the formulas, which must contain a rhs formula for each variable with missing values, it should look like list(y1=c("x1","x2"),y2=c("x1","x3"))
-
+\item{modelFormulas}{a named list with the name of variables for the  rhs
+of the formulas, which must contain a rhs formula for each variable with
+missing values, it should look like `list(y1=c("x1","x2"),y2=c("x1","x3"))``
 if factor variables for the mixed variables should be created for the
 regression models}
 
@@ -189,23 +113,27 @@ data(sleep)
 irmi(sleep)
 
 data(testdata)
-imp_testdata1 <- irmi(testdata$wna,mixed=testdata$mixed)
+imp_testdata1 <- irmi(testdata$wna, mixed = testdata$mixed)
 
 # mixed.constant != 0 (-10)
-testdata$wna$m1[testdata$wna$m1==0] <- -10
-testdata$wna$m2 <- log(testdata$wna$m2+0.001)
-imp_testdata2 <- irmi(testdata$wna,mixed=testdata$mixed,mixed.constant=c(-10,log(0.001)))
-imp_testdata2$m2 <- exp(imp_testdata2$m2)-0.001
+testdata$wna$m1[testdata$wna$m1 == 0] <- -10
+testdata$wna$m2 <- log(testdata$wna$m2 + 0.001)
+imp_testdata2 <- irmi(
+  testdata$wna,
+  mixed = testdata$mixed,
+  mixed.constant = c(-10,log(0.001))
+)
+imp_testdata2$m2 <- exp(imp_testdata2$m2) - 0.001
 
 #example with fixed formulas for the variables with missing
-form=list(
-NonD=c("BodyWgt","BrainWgt"),
-Dream=c("BodyWgt","BrainWgt"),
-Sleep=c("BrainWgt"),
-Span=c("BodyWgt"),
-Gest=c("BodyWgt","BrainWgt")
+form = list(
+  NonD  = c("BodyWgt", "BrainWgt"),
+  Dream = c("BodyWgt", "BrainWgt"),
+  Sleep = c("BrainWgt"           ),
+  Span  = c("BodyWgt"            ),
+  Gest  = c("BodyWgt", "BrainWgt")
 )
-irmi(sleep,modelFormulas=form,trace=TRUE)
+irmi(sleep, modelFormulas = form, trace = TRUE)
 
 # Example with ordered variable
 td <- testdata$wna
@@ -223,9 +151,17 @@ R package VIM.  \emph{Journal of
 Statistical Software}, 74(7), 1-16.
 }
 \seealso{
-\code{\link[mi]{mi}}
+\code{\link[mi:mi]{mi::mi()}}
+
+Other imputation methods: 
+\code{\link{hotdeck}()},
+\code{\link{kNN}()},
+\code{\link{matchImpute}()},
+\code{\link{rangerImpute}()},
+\code{\link{regressionImp}()}
 }
 \author{
 Matthias Templ, Alexander Kowarik
 }
+\concept{imputation methods}
 \keyword{manip}

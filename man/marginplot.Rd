@@ -31,7 +31,7 @@ marginplot(
 
 \item{delimiter}{a character-vector to distinguish between variables and
 imputation-indices for imputed variables (therefore, \code{x} needs to have
-\code{\link{colnames}}). If given, it is used to determine the corresponding
+\code{\link[=colnames]{colnames()}}). If given, it is used to determine the corresponding
 imputation-index for any imputed variable (a logical-vector indicating which
 values of the variable have been imputed). If such imputation-indices are
 found, they are used for highlighting and the colors are adjusted according
@@ -93,7 +93,7 @@ only one of the axes.}
 the plot.}
 
 \item{\dots}{further graphical parameters to be passed down (see
-\code{\link[graphics]{par}}).}
+\code{\link[graphics:par]{graphics::par()}}).}
 }
 \description{
 In addition to a standard scatterplot, information about missing/imputed
@@ -141,9 +141,25 @@ data using visualization tools.  \emph{Journal of Advances in Data Analysis
 and Classification}, Online first. DOI: 10.1007/s11634-011-0102-y.
 }
 \seealso{
-\code{\link{scattMiss}}
+\code{\link[=scattMiss]{scattMiss()}}
+
+Other plotting functions: 
+\code{\link{aggr}()},
+\code{\link{barMiss}()},
+\code{\link{histMiss}()},
+\code{\link{marginmatrix}()},
+\code{\link{matrixplot}()},
+\code{\link{mosaicMiss}()},
+\code{\link{pairsVIM}()},
+\code{\link{parcoordMiss}()},
+\code{\link{pbox}()},
+\code{\link{scattJitt}()},
+\code{\link{scattMiss}()},
+\code{\link{scattmatrixMiss}()},
+\code{\link{spineMiss}()}
 }
 \author{
 Andreas Alfons, Matthias Templ, modifications by Bernd Prantner
 }
+\concept{plotting functions}
 \keyword{hplot}

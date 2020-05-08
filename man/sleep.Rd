@@ -4,16 +4,18 @@
 \name{sleep}
 \alias{sleep}
 \title{Mammal sleep data}
-\format{A data frame with 62 observations on the following 10 variables.
+\format{
+A data frame with 62 observations on the following 10 variables.
 \describe{ \item{BodyWgt}{a numeric vector}
 \item{BrainWgt}{a numeric vector} \item{NonD}{a numeric
 vector} \item{Dream}{a numeric vector} \item{Sleep}{a
 numeric vector} \item{Span}{a numeric vector} \item{Gest}{a
 numeric vector} \item{Pred}{a numeric vector} \item{Exp}{a
-numeric vector} \item{Danger}{a numeric vector} }}
+numeric vector} \item{Danger}{a numeric vector} }
+}
 \source{
 Allison, T. and Chichetti, D. (1976) Sleep in mammals: ecological
-and constitutional correlates. \emph{Science} \bold{194 (4266)}, 732--734.
+and constitutional correlates. \emph{Science} \strong{194 (4266)}, 732--734.
 
 The data set was imported from \code{GGobi}.
 }

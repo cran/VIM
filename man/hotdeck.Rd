@@ -2,51 +2,9 @@
 % Please edit documentation in R/hotdeck.R
 \name{hotdeck}
 \alias{hotdeck}
-\alias{hotdeck.data.frame}
-\alias{hotdeck.survey.design}
-\alias{hotdeck.default}
 \title{Hot-Deck Imputation}
 \usage{
 hotdeck(
-  data,
-  variable = NULL,
-  ord_var = NULL,
-  domain_var = NULL,
-  makeNA = NULL,
-  NAcond = NULL,
-  impNA = TRUE,
-  donorcond = NULL,
-  imp_var = TRUE,
-  imp_suffix = "imp"
-)
-
-\method{hotdeck}{data.frame}(
-  data,
-  variable = NULL,
-  ord_var = NULL,
-  domain_var = NULL,
-  makeNA = NULL,
-  NAcond = NULL,
-  impNA = TRUE,
-  donorcond = NULL,
-  imp_var = TRUE,
-  imp_suffix = "imp"
-)
-
-\method{hotdeck}{survey.design}(
-  data,
-  variable = NULL,
-  ord_var = NULL,
-  domain_var = NULL,
-  makeNA = NULL,
-  NAcond = NULL,
-  impNA = TRUE,
-  donorcond = NULL,
-  imp_var = TRUE,
-  imp_suffix = "imp"
-)
-
-\method{hotdeck}{default}(
   data,
   variable = NULL,
   ord_var = NULL,
@@ -125,7 +83,16 @@ A. Kowarik, M. Templ (2016) Imputation with
 R package VIM.  \emph{Journal of
 Statistical Software}, 74(7), 1-16.
 }
+\seealso{
+Other imputation methods: 
+\code{\link{irmi}()},
+\code{\link{kNN}()},
+\code{\link{matchImpute}()},
+\code{\link{rangerImpute}()},
+\code{\link{regressionImp}()}
+}
 \author{
 Alexander Kowarik
 }
+\concept{imputation methods}
 \keyword{manip}

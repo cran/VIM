@@ -2,69 +2,9 @@
 % Please edit documentation in R/barMiss.R
 \name{barMiss}
 \alias{barMiss}
-\alias{barMiss.data.frame}
-\alias{barMiss.survey.design}
-\alias{barMiss.default}
 \title{Barplot with information about missing/imputed values}
 \usage{
 barMiss(
-  x,
-  delimiter = NULL,
-  pos = 1,
-  selection = c("any", "all"),
-  col = c("skyblue", "red", "skyblue4", "red4", "orange", "orange4"),
-  border = NULL,
-  main = NULL,
-  sub = NULL,
-  xlab = NULL,
-  ylab = NULL,
-  axes = TRUE,
-  labels = axes,
-  only.miss = TRUE,
-  miss.labels = axes,
-  interactive = TRUE,
-  ...
-)
-
-\method{barMiss}{data.frame}(
-  x,
-  delimiter = NULL,
-  pos = 1,
-  selection = c("any", "all"),
-  col = c("skyblue", "red", "skyblue4", "red4", "orange", "orange4"),
-  border = NULL,
-  main = NULL,
-  sub = NULL,
-  xlab = NULL,
-  ylab = NULL,
-  axes = TRUE,
-  labels = axes,
-  only.miss = TRUE,
-  miss.labels = axes,
-  interactive = TRUE,
-  ...
-)
-
-\method{barMiss}{survey.design}(
-  x,
-  delimiter = NULL,
-  pos = 1,
-  selection = c("any", "all"),
-  col = c("skyblue", "red", "skyblue4", "red4", "orange", "orange4"),
-  border = NULL,
-  main = NULL,
-  sub = NULL,
-  xlab = NULL,
-  ylab = NULL,
-  axes = TRUE,
-  labels = axes,
-  only.miss = TRUE,
-  miss.labels = axes,
-  interactive = TRUE,
-  ...
-)
-
-\method{barMiss}{default}(
   x,
   delimiter = NULL,
   pos = 1,
@@ -88,7 +28,7 @@ barMiss(
 
 \item{delimiter}{a character-vector to distinguish between variables and
 imputation-indices for imputed variables (therefore, \code{x} needs to have
-\code{\link{colnames}}). If given, it is used to determine the corresponding
+\code{\link[=colnames]{colnames()}}). If given, it is used to determine the corresponding
 imputation-index for any imputed variable (a logical-vector indicating which
 values of the variable have been imputed). If such imputation-indices are
 found, they are used for highlighting and the colors are adjusted according
@@ -132,7 +72,7 @@ vector giving the label(s) (see \sQuote{Details}).}
 interactively (see \sQuote{Details}).}
 
 \item{\dots}{further graphical parameters to be passed to
-\code{\link[graphics]{title}} and \code{\link[graphics]{axis}}.}
+\code{\link[graphics:title]{graphics::title()}} and \code{\link[graphics:axis]{graphics::axis()}}.}
 }
 \value{
 a numeric vector giving the coordinates of the midpoints of the
@@ -200,10 +140,26 @@ data using visualization tools.  \emph{Journal of Advances in Data Analysis
 and Classification}, Online first. DOI: 10.1007/s11634-011-0102-y.
 }
 \seealso{
-\code{\link{spineMiss}}, \code{\link{histMiss}}
+\code{\link[=spineMiss]{spineMiss()}}, \code{\link[=histMiss]{histMiss()}}
+
+Other plotting functions: 
+\code{\link{aggr}()},
+\code{\link{histMiss}()},
+\code{\link{marginmatrix}()},
+\code{\link{marginplot}()},
+\code{\link{matrixplot}()},
+\code{\link{mosaicMiss}()},
+\code{\link{pairsVIM}()},
+\code{\link{parcoordMiss}()},
+\code{\link{pbox}()},
+\code{\link{scattJitt}()},
+\code{\link{scattMiss}()},
+\code{\link{scattmatrixMiss}()},
+\code{\link{spineMiss}()}
 }
 \author{
 Andreas Alfons, modifications to show imputed values by Bernd
 Prantner
 }
+\concept{plotting functions}
 \keyword{hplot}

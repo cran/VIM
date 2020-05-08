@@ -2,10 +2,6 @@
 % Please edit documentation in R/matchImpute.R
 \name{matchImpute}
 \alias{matchImpute}
-\alias{matchImpute.data.frame}
-\alias{matchImpute.data.table}
-\alias{matchImpute.survey.design}
-\alias{matchImpute.default}
 \title{Fast matching/imputation based on categorical variable}
 \usage{
 matchImpute(
@@ -15,41 +11,9 @@ matchImpute(
   imp_var = TRUE,
   imp_suffix = "imp"
 )
-
-\method{matchImpute}{data.frame}(
-  data,
-  variable = colnames(data)[!colnames(data) \%in\% match_var],
-  match_var,
-  imp_var = TRUE,
-  imp_suffix = "imp"
-)
-
-\method{matchImpute}{data.table}(
-  data,
-  variable = colnames(data)[!colnames(data) \%in\% match_var],
-  match_var,
-  imp_var = TRUE,
-  imp_suffix = "imp"
-)
-
-\method{matchImpute}{survey.design}(
-  data,
-  variable = colnames(data$variables)[!colnames(data$variables) \%in\% match_var],
-  match_var,
-  imp_var = TRUE,
-  imp_suffix = "imp"
-)
-
-\method{matchImpute}{default}(
-  data,
-  variable = colnames(data)[!colnames(data) \%in\% match_var],
-  match_var,
-  imp_var = TRUE,
-  imp_suffix = "imp"
-)
 }
 \arguments{
-\item{data}{data.frame, data.table, survey object or matrix}
+\item{data}{data.frame, data.table or matrix}
 
 \item{variable}{variables to be imputed}
 
@@ -81,13 +45,21 @@ imp_data <- matchImpute(sleep,variable=c("NonD","Dream","Sleep","Span","Gest"),
 data(testdata,package="VIM")
 imp_testdata1 <- matchImpute(testdata$wna,match_var=c("c1","c2","b1","b2"))
 
-dt <- data.table(testdata$wna)
+dt <- data.table::data.table(testdata$wna)
 imp_testdata2 <- matchImpute(dt,match_var=c("c1","c2","b1","b2"))
 }
 \seealso{
-\code{\link[VIM]{hotdeck}}
+\code{\link[VIM:hotdeck]{VIM::hotdeck()}}
+
+Other imputation methods: 
+\code{\link{hotdeck}()},
+\code{\link{irmi}()},
+\code{\link{kNN}()},
+\code{\link{rangerImpute}()},
+\code{\link{regressionImp}()}
 }
 \author{
 Johannes Gussenbauer, Alexander Kowarik
 }
+\concept{imputation methods}
 \keyword{manip}

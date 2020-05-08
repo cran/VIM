@@ -6,21 +6,9 @@
 \alias{print.aggr}
 \alias{summary.aggr}
 \alias{print.summary.aggr}
-\alias{aggr.data.frame}
-\alias{aggr.survey.design}
-\alias{aggr.default}
-\alias{aggr_work}
 \title{Aggregations for missing/imputed values}
 \usage{
 aggr(x, delimiter = NULL, plot = TRUE, ...)
-
-\method{aggr}{data.frame}(x, delimiter = NULL, plot = TRUE, ...)
-
-\method{aggr}{survey.design}(x, delimiter = NULL, plot = TRUE, ...)
-
-\method{aggr}{default}(x, delimiter = NULL, plot = TRUE, ...)
-
-aggr_work(x, delimiter = NULL, plot = TRUE, ...)
 
 \method{plot}{aggr}(
   x,
@@ -55,7 +43,7 @@ aggr_work(x, delimiter = NULL, plot = TRUE, ...)
 
 \item{delimiter}{a character-vector to distinguish between variables and
 imputation-indices for imputed variables (therefore, \code{x} needs to have
-\code{\link{colnames}}). If given, it is used to determine the corresponding
+\code{\link[=colnames]{colnames()}}). If given, it is used to determine the corresponding
 imputation-index for any imputed variable (a logical-vector indicating which
 values of the variable have been imputed). If such imputation-indices are
 found, they are used for highlighting and the colors are adjusted according
@@ -130,29 +118,33 @@ proportion or frequencies of the different combinations}
 distance between the two plots in margin lines.}
 
 \item{digits}{the minimum number of significant digits to be used (see
-\code{\link{print.default}}).}
+\code{\link[=print.default]{print.default()}}).}
 
 \item{object}{an object of class \code{"aggr"}.}
 }
 \value{
 for \code{aggr}, a list of class \code{"aggr"} containing the
 following components:
-- x the data used.
-- combinations a character vector representing the combinations of
+\itemize{
+\item x the data used.
+\item combinations a character vector representing the combinations of
 variables.
--  count the frequencies of these combinations.
--  percent the percentage of these combinations.
--  missings a \code{data.frame} containing the amount of
+\item count the frequencies of these combinations.
+\item percent the percentage of these combinations.
+\item missings a \code{data.frame} containing the amount of
 missing/imputed values in each variable.
--  tabcomb the indicator matrix for the combinations of variables.
+\item tabcomb the indicator matrix for the combinations of variables.
+}
 
 a list of class \code{"summary.aggr"} containing the following
 components:
--  missings a \code{data.frame} containing the amount of missing or
+\itemize{
+\item missings a \code{data.frame} containing the amount of missing or
 imputed values in each variable.
--  combinations a \code{data.frame} containing a character vector
+\item combinations a \code{data.frame} containing a character vector
 representing the combinations of variables along with their frequencies and
 percentages.
+}
 }
 \description{
 Calculate or plot the amount of missing/imputed values in each variable and
@@ -235,13 +227,28 @@ data using visualization tools.  \emph{Journal of Advances in Data Analysis
 and Classification}, Online first. DOI: 10.1007/s11634-011-0102-y.
 }
 \seealso{
-\code{\link{print.aggr}}, \code{\link{summary.aggr}}
+\code{\link[=print.aggr]{print.aggr()}}, \code{\link[=summary.aggr]{summary.aggr()}}
 
-\code{\link{aggr}}
+\code{\link[=aggr]{aggr()}}
 
-\code{\link{print.summary.aggr}}, \code{\link{aggr}}
+\code{\link[=print.summary.aggr]{print.summary.aggr()}}, \code{\link[=aggr]{aggr()}}
 
-\code{\link{summary.aggr}}, \code{\link{aggr}}
+\code{\link[=summary.aggr]{summary.aggr()}}, \code{\link[=aggr]{aggr()}}
+
+Other plotting functions: 
+\code{\link{barMiss}()},
+\code{\link{histMiss}()},
+\code{\link{marginmatrix}()},
+\code{\link{marginplot}()},
+\code{\link{matrixplot}()},
+\code{\link{mosaicMiss}()},
+\code{\link{pairsVIM}()},
+\code{\link{parcoordMiss}()},
+\code{\link{pbox}()},
+\code{\link{scattJitt}()},
+\code{\link{scattMiss}()},
+\code{\link{scattmatrixMiss}()},
+\code{\link{spineMiss}()}
 }
 \author{
 Andreas Alfons, Matthias Templ, modifications for displaying imputed
@@ -253,5 +260,6 @@ Matthias Templ, modifications by Andreas Alfons
 
 Andreas Alfons, modifications by Bernd Prantner
 }
+\concept{plotting functions}
 \keyword{hplot}
 \keyword{print}

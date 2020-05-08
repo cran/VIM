@@ -2,36 +2,9 @@
 % Please edit documentation in R/marginmatrix.R
 \name{marginmatrix}
 \alias{marginmatrix}
-\alias{marginmatrix.data.frame}
-\alias{marginmatrix.survey.design}
-\alias{marginmatrix.default}
 \title{Marginplot Matrix}
 \usage{
 marginmatrix(
-  x,
-  delimiter = NULL,
-  col = c("skyblue", "red", "red4", "orange", "orange4"),
-  alpha = NULL,
-  ...
-)
-
-\method{marginmatrix}{data.frame}(
-  x,
-  delimiter = NULL,
-  col = c("skyblue", "red", "red4", "orange", "orange4"),
-  alpha = NULL,
-  ...
-)
-
-\method{marginmatrix}{survey.design}(
-  x,
-  delimiter = NULL,
-  col = c("skyblue", "red", "red4", "orange", "orange4"),
-  alpha = NULL,
-  ...
-)
-
-\method{marginmatrix}{default}(
   x,
   delimiter = NULL,
   col = c("skyblue", "red", "red4", "orange", "orange4"),
@@ -44,7 +17,7 @@ marginmatrix(
 
 \item{delimiter}{a character-vector to distinguish between variables and
 imputation-indices for imputed variables (therefore, \code{x} needs to have
-\code{\link{colnames}}). If given, it is used to determine the corresponding
+\code{\link[=colnames]{colnames()}}). If given, it is used to determine the corresponding
 imputation-index for any imputed variable (a logical-vector indicating which
 values of the variable have been imputed). If such imputation-indices are
 found, they are used for highlighting and the colors are adjusted according
@@ -66,16 +39,16 @@ transparency of the colors, or \code{NULL}.  This can be used to prevent
 overplotting.}
 
 \item{\dots}{further arguments and graphical parameters to be passed to
-\code{\link{pairsVIM}} and \code{\link{marginplot}}.  \code{par("oma")} will
-be set appropriately unless supplied (see \code{\link[graphics]{par}}).}
+\code{\link[=pairsVIM]{pairsVIM()}} and \code{\link[=marginplot]{marginplot()}}.  \code{par("oma")} will
+be set appropriately unless supplied (see \code{\link[graphics:par]{graphics::par()}}).}
 }
 \description{
 Create a scatterplot matrix with information about missing/imputed values in
 the plot margins of each panel.
 }
 \details{
-\code{marginmatrix} uses \code{\link{pairsVIM}} with a panel function based
-on \code{\link{marginplot}}.
+\code{marginmatrix} uses \code{\link[=pairsVIM]{pairsVIM()}} with a panel function based
+on \code{\link[=marginplot]{marginplot()}}.
 
 The graphical parameter \code{oma} will be set unless supplied as an
 argument.
@@ -100,10 +73,26 @@ data using visualization tools.  \emph{Journal of Advances in Data Analysis
 and Classification}, Online first. DOI: 10.1007/s11634-011-0102-y.
 }
 \seealso{
-\code{\link{marginplot}}, \code{\link{pairsVIM}},
-\code{\link{scattmatrixMiss}}
+\code{\link[=marginplot]{marginplot()}}, \code{\link[=pairsVIM]{pairsVIM()}},
+\code{\link[=scattmatrixMiss]{scattmatrixMiss()}}
+
+Other plotting functions: 
+\code{\link{aggr}()},
+\code{\link{barMiss}()},
+\code{\link{histMiss}()},
+\code{\link{marginplot}()},
+\code{\link{matrixplot}()},
+\code{\link{mosaicMiss}()},
+\code{\link{pairsVIM}()},
+\code{\link{parcoordMiss}()},
+\code{\link{pbox}()},
+\code{\link{scattJitt}()},
+\code{\link{scattMiss}()},
+\code{\link{scattmatrixMiss}()},
+\code{\link{spineMiss}()}
 }
 \author{
 Andreas Alfons, modifications by Bernd Prantner
 }
+\concept{plotting functions}
 \keyword{hplot}

@@ -6,9 +6,6 @@
 \alias{pfc}
 \alias{msecov}
 \alias{msecor}
-\alias{mape}
-\alias{lr}
-\alias{smape}
 \title{Error performance measures}
 \usage{
 evaluation(x, y, m, vartypes = "guess")
@@ -16,12 +13,6 @@ evaluation(x, y, m, vartypes = "guess")
 nrmse(x, y, m)
 
 pfc(x, y, m)
-
-mape(x, y, m)
-
-lr(x, y, m)
-
-smape(x, y, m)
 
 msecov(x, y)
 
@@ -43,7 +34,7 @@ the error measures value
 Various error measures evaluating the quality of imputations
 }
 \details{
-This function has been mainly written for procudures 
+This function has been mainly written for procudures
 that evaluate imputation or replacement of rounded zeros. The ni parameter can thus, e.g. be
 used for expressing the number of rounded zeros.
 }
@@ -54,11 +45,9 @@ iris_imp$Sepal.Length[sample(1:nrow(iris), 10)] <- NA
 iris_imp$Sepal.Width[sample(1:nrow(iris), 10)] <- NA
 iris_imp$Species[sample(1:nrow(iris), 10)] <- NA
 m <- is.na(iris_imp)
-iris_imp <- VIM::kNN(iris_imp, imp_var = FALSE)
-\dontrun{
+iris_imp <- kNN(iris_imp, imp_var = FALSE)
 evaluation(iris_orig, iris_imp, m = m, vartypes = c(rep("numeric", 4), "factor"))
 msecov(iris_orig[, 1:4], iris_imp[, 1:4])
-}
 }
 \references{
 M. Templ, A. Kowarik, P. Filzmoser (2011) Iterative stepwise

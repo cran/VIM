@@ -2,48 +2,9 @@
 % Please edit documentation in R/mosaicMiss.R
 \name{mosaicMiss}
 \alias{mosaicMiss}
-\alias{mosaicMiss.data.frame}
-\alias{mosaicMiss.survey.design}
-\alias{mosaicMiss.default}
 \title{Mosaic plot with information about missing/imputed values}
 \usage{
 mosaicMiss(
-  x,
-  delimiter = NULL,
-  highlight = NULL,
-  selection = c("any", "all"),
-  plotvars = NULL,
-  col = c("skyblue", "red", "orange"),
-  labels = NULL,
-  miss.labels = TRUE,
-  ...
-)
-
-\method{mosaicMiss}{data.frame}(
-  x,
-  delimiter = NULL,
-  highlight = NULL,
-  selection = c("any", "all"),
-  plotvars = NULL,
-  col = c("skyblue", "red", "orange"),
-  labels = NULL,
-  miss.labels = TRUE,
-  ...
-)
-
-\method{mosaicMiss}{survey.design}(
-  x,
-  delimiter = NULL,
-  highlight = NULL,
-  selection = c("any", "all"),
-  plotvars = NULL,
-  col = c("skyblue", "red", "orange"),
-  labels = NULL,
-  miss.labels = TRUE,
-  ...
-)
-
-\method{mosaicMiss}{default}(
   x,
   delimiter = NULL,
   highlight = NULL,
@@ -60,7 +21,7 @@ mosaicMiss(
 
 \item{delimiter}{a character-vector to distinguish between variables and
 imputation-indices for imputed variables (therefore, \code{x} needs to have
-\code{\link{colnames}}). If given, it is used to determine the corresponding
+\code{\link[=colnames]{colnames()}}). If given, it is used to determine the corresponding
 imputation-index for any imputed variable (a logical-vector indicating which
 values of the variable have been imputed). If such imputation-indices are
 found, they are used for highlighting and the colors are adjusted according
@@ -84,13 +45,13 @@ corresponding to observed data are transparent and the supplied color is
 used for highlighting.}
 
 \item{labels}{a list of arguments for the labeling function
-\code{\link[vcd]{labeling_border}}.}
+\code{\link[vcd:labeling_border]{vcd::labeling_border()}}.}
 
 \item{miss.labels}{either a logical indicating whether labels should be
 plotted for observed and missing/imputed (highlighted) data, or a character
 vector giving the labels.}
 
-\item{\dots}{additional arguments to be passed to \code{\link[vcd]{mosaic}}.}
+\item{\dots}{additional arguments to be passed to \code{\link[vcd:mosaic]{vcd::mosaic()}}.}
 }
 \value{
 An object of class \code{"structable"} is returned invisibly.
@@ -125,16 +86,32 @@ mosaicMiss(kNN(sleep), highlight = 4,
 \references{
 Meyer, D., Zeileis, A. and Hornik, K. (2006) The
 \code{strucplot} framework: Visualizing multi-way contingency tables with
-\pkg{vcd}. \emph{Journal of Statistical Software}, \bold{17 (3)}, 1--48.
+\pkg{vcd}. \emph{Journal of Statistical Software}, \strong{17 (3)}, 1--48.
 
 M. Templ, A. Alfons, P. Filzmoser (2012) Exploring incomplete data using
 visualization tools.  \emph{Journal of Advances in Data Analysis and
 Classification}, Online first. DOI: 10.1007/s11634-011-0102-y.
 }
 \seealso{
-\code{\link{spineMiss}}, \code{\link[vcd]{mosaic}}
+\code{\link[=spineMiss]{spineMiss()}}, \code{\link[vcd:mosaic]{vcd::mosaic()}}
+
+Other plotting functions: 
+\code{\link{aggr}()},
+\code{\link{barMiss}()},
+\code{\link{histMiss}()},
+\code{\link{marginmatrix}()},
+\code{\link{marginplot}()},
+\code{\link{matrixplot}()},
+\code{\link{pairsVIM}()},
+\code{\link{parcoordMiss}()},
+\code{\link{pbox}()},
+\code{\link{scattJitt}()},
+\code{\link{scattMiss}()},
+\code{\link{scattmatrixMiss}()},
+\code{\link{spineMiss}()}
 }
 \author{
 Andreas Alfons, modifications by Bernd Prantner
 }
+\concept{plotting functions}
 \keyword{hplot}
