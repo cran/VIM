@@ -1,3 +1,19 @@
+# VIM 6.0.2
+- error message in `hotdeck()` when ord_var and variable overlap
+- family argument of class 'family' now work in regressionImp
+
+# VIM 6.0.1
+
+- add new vignettes explaining all remaining imputation methods (`irmi()`,
+  `kNN()`, `hotdeck()` and `regressionImp()`). Thanks @wolfgangrannetbauer
+  (#44, #45)
+- Allow missing and imputed values in several visualization functions.
+    - The new functionalities are showcased in the new [visualization vignette](http://statistikat.github.io/VIM/articles/VisualImp.html) (#46). Thanks
+  @wolfgangrannetbauer!
+- Add `tableMiss()`: A table that highlights missing and imputed values via
+  colors (#47).
+- Bug fix for kNN (#48) Thanks @torockel
+
 # VIM 6.0.0
 
 - extend documentation with new vignettes and pkgdown

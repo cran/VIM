@@ -304,9 +304,18 @@ barMiss <- function(x, delimiter = NULL, pos = 1, selection = c("any","all"),
             if(p > 1 && any(missh)) {  # add barplot for missings
                 if(imputed) color <- col[5]
 				else color <- col[2]
+				indices <- which(is.na(x[,2]) & missh ==TRUE)
+				missh2 <- missh
+				missh2[-indices] <- FALSE
 				countsmiss <- table(xpos[missh], useNA="no")
-                b <- barplot(countsmiss, col=color, border=border, 
+				countsmiss2 <- table(xpos[missh2], useNA="no")
+          b <- barplot(countsmiss, col=color, border=border, 
                     add=TRUE, axes=FALSE, axisnames=FALSE)
+                
+          if(length(indices) > 0 & imputed) {
+            b <- barplot(countsmiss2, col=col[2], border=border, 
+                         add=TRUE, axes=FALSE, axisnames=FALSE)
+          }
             }
 			else if(p == 1 && impp == TRUE && any(misspos)) {
 				countsmiss <- table(xpos[missh], useNA="no")
@@ -355,8 +364,21 @@ barMiss <- function(x, delimiter = NULL, pos = 1, selection = c("any","all"),
             ytop <- ct
 			if(!imputed) color <- col[c(2,1,4,3)]
 			else color <- col[c(5,1,6,3)]
+            ########################################################
+            
             rect(xleft, ybottom, xright, ytop, 
                 col=color, border=border, xpd=TRUE)
+            ## still missings
+            if(length(indices) > 0 & imputed) {
+              sum_miss <- length(indices)
+              xleft1 <- xleft[1]
+              ybottom1 <- ybottom[1]
+              xright1 <- xright[1]
+              ytop1 <- sum_miss
+              color1 <- col[2]
+              rect(xleft1,ybottom1,xright1,ytop1,col=color1,border=border,xpd=TRUE)
+            }
+            ########################################################
             if(miss.axis) {
                 miss.at <- zero + c(0.5,2)*0.03*h
                 if(is.null(miss.labels)) {
