@@ -26,7 +26,9 @@ kNN(
   onlyRF = FALSE,
   addRandom = FALSE,
   useImputedDist = TRUE,
-  weightDist = FALSE
+  weightDist = FALSE,
+  methodStand = "range",
+  ordFun = medianSamp
 )
 }
 \arguments{
@@ -56,7 +58,8 @@ of a categorical variable}
 
 \item{impNA}{TRUE/FALSE whether NA should be imputed}
 
-\item{donorcond}{condition for the donors e.g. list(">5"), must be NULL or a list of same length as variable}
+\item{donorcond}{list of length equal to the number of variables, with a donorcond condition as character string.
+e.g. a list element can be ">5" or c(">5","<10). If the list element for a variable is NULL no condition will be applied for this variable.}
 
 \item{mixed}{names of mixed variables}
 
@@ -85,6 +88,11 @@ Be aware that this results in a dependency on the ordering of the variables.}
 
 \item{weightDist}{TRUE/FALSE if the distances of the k nearest neighbours should be used as weights in the
 aggregation step}
+
+\item{methodStand}{either "range" or "iqr" to be used in the standardization of numeric vaiables in the gower distance}
+
+\item{ordFun}{function for aggregating the k Nearest Neighbours in the case
+of a ordered factor variable}
 }
 \value{
 the imputed data set.
