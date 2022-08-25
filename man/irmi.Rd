@@ -155,10 +155,13 @@ Statistical Software}, 74(7), 1-16.
 
 Other imputation methods: 
 \code{\link{hotdeck}()},
+\code{\link{impPCA}()},
 \code{\link{kNN}()},
 \code{\link{matchImpute}()},
+\code{\link{medianSamp}()},
 \code{\link{rangerImpute}()},
-\code{\link{regressionImp}()}
+\code{\link{regressionImp}()},
+\code{\link{sampleCat}()}
 }
 \author{
 Matthias Templ, Alexander Kowarik

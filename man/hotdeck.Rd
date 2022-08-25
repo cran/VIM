@@ -93,11 +93,14 @@ Statistical Software}, 74(7), 1-16.
 }
 \seealso{
 Other imputation methods: 
+\code{\link{impPCA}()},
 \code{\link{irmi}()},
 \code{\link{kNN}()},
 \code{\link{matchImpute}()},
+\code{\link{medianSamp}()},
 \code{\link{rangerImpute}()},
-\code{\link{regressionImp}()}
+\code{\link{regressionImp}()},
+\code{\link{sampleCat}()}
 }
 \author{
 Alexander Kowarik
